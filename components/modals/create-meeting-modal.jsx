@@ -37,7 +37,7 @@ import { useEffect, useState } from 'react';
 import { useModal } from '@/hooks/use-modal';
 import { Eye, Loader2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+// import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 

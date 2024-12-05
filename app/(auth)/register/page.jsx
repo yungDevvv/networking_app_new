@@ -13,7 +13,7 @@ import {
    CardTitle,
    CardFooter
 } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/client";
+// import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -21,7 +21,7 @@ import Link from "next/link";
 import { account, ID } from "@/lib/appwrite/client/appwrite";
 
 export default function Page({ }) {
-   const supabase = createClient();
+   // const supabase = createClient();
 
    const router = useRouter();
 

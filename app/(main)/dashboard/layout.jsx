@@ -1,15 +1,10 @@
-"use client"
-
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import Header from "@/components/header"
 import { ModalProvider } from "@/components/providers/modal-provider"
-import { useEffect, useState } from "react"
 
-export default function DashboardLayout({ children }) {
-   const [count, setCounter] = useState(0)
-
-
+export default async function DashboardLayout({ children }) {
+   
    return (
       <SidebarProvider>
          <AppSidebar />

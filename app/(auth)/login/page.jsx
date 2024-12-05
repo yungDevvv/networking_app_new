@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { account } from "@/lib/appwrite/client/appwrite";
+import { signInWithEmail } from "@/lib/appwrite/server/appwrite";
 
 export default function Page({ }) {
   const router = useRouter();
@@ -27,18 +28,18 @@ export default function Page({ }) {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
+
+
   const handleLogin = async (formData) => {
     setErrorMessage("");
     setIsLoading(true);
+
     try {
-      const session = await account.createEmailPasswordSession(formData.email, formData.password, {
-        credentials: "include",
-      });
-      console.log(session)
+      await signInWithEmail(formData.email, formData.password)
     } catch (error) {
-      alert(error);
-      setErrorMessage(error);
-      console.error(error);
+      // alert(error);
+      // setErrorMessage(error);
+      // console.error(error);
     } finally {
       setIsLoading(false);
     }
