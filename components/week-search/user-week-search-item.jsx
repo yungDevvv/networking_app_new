@@ -1,118 +1,199 @@
-import { Clock, CopyCheck, EllipsisVertical, FilePenLine, MapPin, MessageSquare, ShieldCheck, Trash2 } from "lucide-react";
-
-import { useRouter } from "next/navigation";
-import { Fragment, useEffect, useState } from "react";
-
-
+import { Clock, Copy, Pencil, MessageSquare, MoreVertical, ShieldCheck, Trash, Send, Loader2 } from "lucide-react";
+import { Fragment, useState } from "react";
+import { cn, formatDateTime } from "@/lib/utils";
 import WeekSearchComment from "./week-search-comment";
-import { formatDateTime } from "@/lib/utils";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
-const UserWeekSearchItem = ({ }) => {
-   const router = useRouter();
+import {
+   DropdownMenu,
+   DropdownMenuContent,
+   DropdownMenuItem,
+   DropdownMenuSeparator,
+   DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-   const [editorOpen, setEditorOpen] = useState(false);
+import { createDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite";
+import { Input } from "../ui/input";
+import { useRouter } from "next/navigation";
+
+const UserWeekSearchItem = ({ weekSearch, setDuplicatedWeekSearch, mutate, router }) => {
+   const [isEditing, setIsEditing] = useState(false);
    const [commentsOpen, setCommentsOpen] = useState(false);
-   const [text, setText] = useState("Lorem asdasd dasdasd asd asd as da");
-   
+   const [text, setText] = useState(weekSearch?.text || "");
+   const [commentText, setCommentText] = useState("");
+   const [isLoading, setIsLoading] = useState(false);
 
-   const [isActiveMenuOpen, setIsActiveMenuOpen] = useState(false);
+   const handleEdit = () => {
+      // Add your edit logic here
+      setIsEditing(false);
+   };
 
-   const [comments, setComments] = useState([]);
-   const [commentText, setCommentText] = useState('');
+   const handleDuplicate = () => {
+      // Add your duplicate logic here
+      setDuplicatedWeekSearch(weekSearch);
+   };
 
+   const handleCommentSubmit = async () => {
+      if (!commentText.trim()) return;
+
+      setIsLoading(true);
+
+      const user = await getLoggedInUser();
+
+      try {
+         const res = await createDocument("main_db", "week_search_comments", {
+            body: {
+               text: commentText,
+               profiles: user.$id,
+               week_searches: weekSearch.$id
+            }
+         });
+
+         mutate();
+         router.refresh();
+      } catch (error) {
+         console.error(error);
+      } finally {
+         setIsLoading(false);
+         setCommentText("");
+      }
+
+
+   };
 
    return (
-      <div className="p-3 border border-indigo-200 rounded-md mt-3">
-         <div className="flex items-center">
-            <img src={"/blank_profile.png"} alt="avatar" className="w-[50px] h-[50px] mr-2 rounded object-cover" />
-            <div>
-               <strong className="font-semibold w-full">You</strong>
-            </div>
-            <div className="ml-auto flex">
-               <div className="relative flex flex-col">
-                  <div className="flex items-center ml-auto">
-                     <Clock size={16} className="text-indigo-600 mr-1" />
-                     <span className="text-sm text-gray-500">{formatDateTime(new Date(), "fi")}</span>
-                  </div>
-                  <button
-                     type="button"
-                     className="flex items-center mt-1 ml-auto"
-                     onClick={() => setIsActiveMenuOpen(prev => !prev)}
-                  >
-                     <ShieldCheck strokeWidth={2} size={16} className={`mr-1 ${true ? "text-green-500" : "text-red-500"}`} />
-                     <span className={`text-sm font-semibold max-md:underline ${false ? "text-green-500" : "text-red-500"}`}>
-                        {true
-                           ? "ACTIVE"
-                           : "NOT ACTIVE"
-                        }
-                     </span>
-                  </button>
-                  {isActiveMenuOpen && (
-                     <div
-                        className="absolute right-0 top-10 mt-2 border w-[125px] bg-white rounded-lg shadow-lg z-10 overflow-hidden"
-                     >
-                        {false
-                           ? <button type="button" onClick={() => handleUpdate(0)} className="block w-full px-4 py-2  text-red-600 hover:text-red-800">Deactivate</button>
-                           : <button type="button" onClick={() => handleUpdate(1)} className="block w-full px-4 py-2 text-green-600 hover:text-green-800">Activate</button>
-                        }
-                     </div>
-                  )}
-               </div>
-            </div>
-         </div>
-         <hr className="border-indigo-200 my-3" />
-         <p>
-            ETSIN JOTAIN; VOITTE AUTTAA
-         </p>
-         {editorOpen && (
-            <div className="w-full mt-2">
-               <textarea className="resize-none h-20 mt-1 block w-full px-2 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" type="text" value={text} onChange={(e) => setText(e.target.value)} />
-               <button className="bg-green-500 rounded-md text-white px-2 py-1 mt-2">Talenna</button>
-            </div>
-         )}
-         <div className="mt-4 space-x-3 flex items-center">
-            <button type="button" className="bg-red-600 rounded-md py-1 px-2">
-               <Trash2 size={20} color="#fff" />
-            </button>
-            <button type="button" className="bg-indigo-500 rounded-md py-1 px-2">
-               <FilePenLine size={20} color="#fff" />
-            </button>
-            <button  type="button" className="bg-indigo-500 rounded-md py-1 px-2 flex items-center">
-               <MessageSquare size={20} color="#fff" />
-               <span className="text-white ml-1 -mt-1">{comments.length}</span>
-            </button>
-            <button type="button" className="bg-slate-500 rounded-md py-1 px-2" title="duplicate">
-               <CopyCheck size={20} color="#fff" />
-            </button>
-         </div>
-         {commentsOpen && (
-            <Fragment>
-               <hr className="border-indigo-200 my-3" />
-               <div className="p-3 rounded-md bg-gray-100">
-                  {/* {comments.length !== 0
-                     ? comments.map(comment => <WeekSearchComment key={comment.id} comment={comment} />)
-                     : <p className="mb-2 font-mono">No comments yet...</p>
-                  } */}
-                  <WeekSearchComment />
-                  <WeekSearchComment />
-                  <WeekSearchComment />
-                  <WeekSearchComment />
-                  <WeekSearchComment />
-                  <WeekSearchComment />
-                  
-                  <div className="flex items-center">
-                     <img src={avatar ? avatar : "/blank_profile.png"} alt="avatar" className="self-start w-[35px] h-[35px] mr-2 rounded object-cover" />
-                     <div>
-                        <textarea onChange={(e) => setCommentText(e.target.value)} value={commentText} placeholder="Add comment" className="block p-2 h-24 resize-none w-72 shadow-sm border border-indigo-200 rounded-md"></textarea>
-                        <button onClick={handleSubmit} className="mt-2 float-end bg-indigo-600 text-white py-1.5 px-4 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Send</button>
-                     </div>
-                  </div>
-               </div>
-            </Fragment>
-         )}
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+         <div className="p-4">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+               <Avatar className="h-10 w-10">
+                  <AvatarFallback>
+                     <img src="/blank_profile.png" alt="avatar" className="h-full w-full object-cover" />
+                  </AvatarFallback>
+               </Avatar>
 
+               <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                     <div>
+                        <h3 className="font-semibold text-gray-900">You</h3>
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                           <div className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              <span>{formatDateTime(weekSearch?.$createdAt || weekSearch?.$createdAt, "fi")}</span>
+                           </div>
+                           <div className="h-1 w-1 rounded-full bg-gray-300" />
+                           <div className="flex items-center gap-1">
+                              <ShieldCheck className={cn("h-3.5 w-3.5", weekSearch?.is_active ? "text-green-500" : "text-gray-400")} />
+                              <span>{weekSearch?.is_active ? "Active" : "Not Active"}</span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                           <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                           </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                           </DropdownMenuItem>
+                           <DropdownMenuItem onClick={handleDuplicate}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Duplicate
+                           </DropdownMenuItem>
+                           <DropdownMenuSeparator />
+                           <DropdownMenuItem
+                              onClick={() => setDeleteDialogOpen(true)}
+                              className="text-red-600"
+                           >
+                              <Trash className="h-4 w-4 mr-2" />
+                              Delete
+                           </DropdownMenuItem>
+                        </DropdownMenuContent>
+                     </DropdownMenu>
+                  </div>
+               </div>
+            </div>
+
+            {/* Content */}
+            <div className="mt-4">
+               {isEditing ? (
+                  <div className="space-y-4">
+                     <Textarea
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="min-h-[100px]"
+                     />
+                     <div className="flex items-center gap-2 justify-end">
+                        <Button
+                           variant="outline"
+                           onClick={() => setIsEditing(false)}
+                        >
+                           Cancel
+                        </Button>
+                        <Button onClick={handleEdit}>Save Changes</Button>
+                     </div>
+                  </div>
+               ) : (
+                  <p className="text-gray-700 whitespace-pre-wrap">{text}</p>
+               )}
+            </div>
+
+            <Separator className="my-4" />
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+               <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-600"
+                  onClick={() => setCommentsOpen(!commentsOpen)}
+               >
+                  <MessageSquare className="h-4 w-4 mr-1.5" />
+                  <span>{weekSearch.week_search_comments.length}</span>
+               </Button>
+            </div>
+         </div>
+
+         {/* Comments Section */}
+         {commentsOpen && (
+            <div className="border-t border-gray-100 bg-gray-50/50 p-4 space-y-4 rounded-b-xl">
+               <ScrollArea className="h-[300px]">
+                  {weekSearch.week_search_comments.length > 0 ? (
+                     weekSearch.week_search_comments.map((comment) => (
+                        <WeekSearchComment key={comment.$id} comment={comment} />
+                     ))
+                  ) : (
+                     <p className="text-sm text-gray-500 text-center py-2">No comments yet</p>
+                  )}
+               </ScrollArea>
+               {/* Add Comment Form */}
+               <div className="flex items-center">
+                  <Input
+                     value={commentText}
+                     onChange={(e) => setCommentText(e.target.value)}
+                     placeholder="Write a comment..."
+                     className="mr-2"
+                  />
+                  <Button
+                     onClick={handleCommentSubmit}
+                     disabled={!commentText.trim()}
+                     className="border-0"
+                  >
+                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send />}
+                  </Button>
+               </div>
+            </div>
+         )}
       </div>
-   )
-}
+   );
+};
 
 export default UserWeekSearchItem;

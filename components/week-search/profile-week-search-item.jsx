@@ -1,41 +1,64 @@
 "use client"
 
+import { Clock, MapPin, Tag } from "lucide-react";
 import { formatDateTime } from "@/lib/utils";
-import { Clock, MapPin } from "lucide-react";
 
-import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { storage } from "@/lib/appwrite/client/appwrite";
 
-const ProfileWeekSearchItem = ({ weekSearch, profileId, avatar }) => {
-
-   const [commentsOpen, setCommentsOpen] = useState(false);
-   const [comments, setComments] = useState([]);
-   const [commentText, setCommentText] = useState('');
-
+const ProfileWeekSearchItem = ({ weekSearch }) => {
    return (
-      <div className="2xl:p-3 p-2 border border-indigo-200 rounded-md mb-3">
-         <div className="flex items-center">
-            <img src={"/blank_profile.png"} alt="avatar" className="2xl:w-[50px] 2xl:h-[50px] w-[40px] h-[40px] mr-2 rounded object-contain" />
-            <div>
-               <h3 className="font-medium w-full text-md max-xl:text-sm">Semen Meliachenko</h3>
-               <div className="flex items-center">
-                  <MapPin size={16} className="text-indigo-500" />
-                  <span className="xl:text-sm text-xs">Helsinki</span>
+      <div className="bg-white rounded-xl border border-gray-200 hover:border-indigo-200 transition-all">
+         <div className="p-4">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+               <Avatar className="h-12 w-12 rounded-xl">
+                  <AvatarImage className="h-full w-full object-cover" src={storage.getFilePreview("avatars", weekSearch.profiles.avatar)} />
+                  <AvatarFallback>
+                     <img src="/blank_profile.png" alt="avatar" className="h-full w-full object-cover" />
+                  </AvatarFallback>
+               </Avatar>
+
+               <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                     <div>
+                        <h3 className="font-semibold text-gray-900">{weekSearch.profiles.name}</h3>
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                           <div className="flex items-center gap-1">
+                              <MapPin className="h-3.5 w-3.5" />
+                              <span>{weekSearch.profiles.location}</span>
+                           </div>
+                           <div className="h-1 w-1 rounded-full bg-gray-300" />
+                           <div className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              <span>{formatDateTime(new Date(weekSearch.$createdAt), "fi")}</span>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
                </div>
             </div>
-            <div className="ml-auto self-start">
-               <div className="flex items-center">
-                  <Clock className="text-indigo-500 mr-1 w-[16px]" />
-                  <span className="xl:text-sm text-xs text-gray-500 ">{formatDateTime(new Date(), "fi")}</span> 
+
+            {/* Content */}
+            <div className="mt-4">
+               <p className="text-gray-700 leading-relaxed">
+                  {weekSearch.text}
+               </p>
+
+               <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium">
+                     <Tag className="h-3.5 w-3.5" />
+                     <span>Business</span>
+                  </div>
+                  <div className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium">
+                     <Tag className="h-3.5 w-3.5" />
+                     <span>Marketing</span>
+                  </div>
                </div>
-              
             </div>
          </div>
-         <hr className="border-indigo-200 my-3" />
-         <p className="text-sm">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi ratione, quam illo ab obcaecati totam ad deleniti ut rerum, inventore quaerat aut fuga officia, numquam nam. Qui magni id nobis?
-         </p>
       </div>
-   )
-}
+   );
+};
 
 export default ProfileWeekSearchItem;

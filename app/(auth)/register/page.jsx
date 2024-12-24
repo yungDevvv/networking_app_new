@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { account, ID } from "@/lib/appwrite/client/appwrite";
+import { signUpWithEmail } from "@/lib/appwrite/server/appwrite";
 
 export default function Page({ }) {
    // const supabase = createClient();
@@ -31,41 +31,35 @@ export default function Page({ }) {
    const { register, handleSubmit, formState: { errors } } = useForm();
 
    const handleRegister = async (formData) => {
+
+      if (formData.password.length < 8) {
+         setErrorMessage("Salasanan on oltava vähintään 8 merkkiä pitkä.");
+         return;
+      }
+
       setErrorMessage("");
       setIsLoading(true);
       try {
-         const res = await account.create(ID.unique(), formData.email, formData.password);
-         console.log(res)
+         await signUpWithEmail(formData.email, formData.password, `${formData.first_name} ${formData.last_name}`);
+
+         const { mauticEmailService } = require('@/lib/mautic/mautic');
+         await mauticEmailService.sendEmail('verification', formData.email, {
+            name: `${formData.first_name} ${formData.last_name}`,
+            url: 'https://localhost:3000/verify/',
+            teamName: 'Respa'
+         });
+
       } catch (error) {
-         alert(error);
          setErrorMessage(error);
-         console.error(error);
+         console.log(error);
+         return;
       } finally {
          setIsLoading(false);
       }
+
+      // router.push("/dashboard");
    };
 
-   useEffect(() => {
-      // (async () => {
-      //    const { data: initUser, error: initUserError } = await supabase.auth.getUser();
-
-      //    if (initUserError) console.error(initUserError);
-
-      //    if (initUser.user) {
-      //       const { data: user, error: userError } = await supabase
-      //          .from("users")
-      //          .select("active_event")
-      //          .eq("id", initUser.user.id);
-
-      //       if (userError) console.error(userError);
-
-      //       if (user[0]) {
-      //          router.push("/");
-      //       }
-      //    }
-      // })()
-
-   }, [])
 
    return (
       <div className="flex h-screen w-full items-center justify-center px-4 bg-indigo-50">
@@ -77,8 +71,8 @@ export default function Page({ }) {
             <CardContent>
 
                <form onSubmit={handleSubmit(handleRegister)} className="grid">
-                  {errorMessage && <p className="text-sm -my-2 text-red-500">{errorMessage}</p>}
-                  {/* <div className="grid gap-2 mb-5">
+                  {errorMessage && <p className="text-sm text-center -mt-2 mb-3 text-red-500">{errorMessage}</p>}
+                  <div className="grid gap-2 mb-3">
                      <Label htmlFor="first_name">Etunimi</Label>
                      <Input
                         id="first_name"
@@ -88,7 +82,7 @@ export default function Page({ }) {
                      />
                      {errors.first_name && <p className="text-red-500 text-sm -mt-1">{errors.first_name.message}</p>}
                   </div>
-                  <div className="grid gap-2 mb-5">
+                  <div className="grid gap-2 mb-3">
                      <Label htmlFor="last_name">Sukunimi</Label>
                      <Input
                         id="last_name"
@@ -97,8 +91,8 @@ export default function Page({ }) {
                         {...register("last_name", { required: "Sukunimi on pakollinen" })}
                      />
                      {errors.last_name && <p className="text-red-500 text-sm -mt-1">{errors.last_name.message}</p>}
-                  </div> */}
-                  <div className="grid gap-2 mb-5">
+                  </div>
+                  <div className="grid gap-2 mb-3">
                      <Label htmlFor="email">Sähköposti</Label>
                      <Input
                         id="email"

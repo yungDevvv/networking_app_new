@@ -22,7 +22,7 @@ const DatePicker = React.forwardRef(({ ...field }, ref) => {
                ref={ref} // Attach the ref here
                variant={"outline"}
                className={cn(
-                  "w-full justify-start text-left font-normal hover:bg-inherit",
+                  "w-full justify-start text-left font-normal hover:bg-inherit !mt-1",
                   !field.value && "text-muted-foreground"
                )}
             >

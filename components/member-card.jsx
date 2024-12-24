@@ -2,12 +2,28 @@
 
 import { Fragment, useState } from 'react';
 
-import { ContactRound, EllipsisVertical, Info, Link, Mail, MapPin, Phone, Search } from 'lucide-react';
+import { Calendar, Clock, ContactRound, EllipsisVertical, Info, Link, Mail, MapPin, Phone, Search } from 'lucide-react';
 // import { companiesList } from '../utils/companies_data';
 // import { hashEncodeId } from '../../hashId';
 
 // import { useModal } from "../context/ModalProvider";
 import { useRouter } from "next/navigation";
+
+import {
+   Avatar,
+   AvatarFallback,
+   AvatarImage
+} from "@/components/ui/avatar"
+
+import {
+   DropdownMenu,
+   DropdownMenuContent,
+   DropdownMenuItem,
+   DropdownMenuSeparator,
+   DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { businessNetworksType } from '@/types/business-networks-type';
 
 const companiesList = [
    {
@@ -34,181 +50,283 @@ const companiesList = [
       name: "Keuke",
       image: "https://www.keuke.fi/client/keuke/images/logo-black.png"
    },
- ];
+];
 
 import MemberCardWeekSearch from './week-search/member-card-week-search';
+import { useTranslations } from 'next-intl';
+import { format } from 'date-fns';
+import { useModal } from '@/hooks/use-modal';
 
-const MemberCard = () => {
-   const [isMenuOpen, setIsMenuOpen] = useState(false);
-   const [chooseGroupModalOpen, setChooseGroupModalOpen] = useState(false);
+const MemberCard = ({ member, memberProfile, meets }) => {
+   const [dropdownOpen, setDropdownOpen] = useState(false);
+
    const [contentOpen, setContentOpen] = useState(1)
-
-   const handleMenuToggle = () => setIsMenuOpen(!isMenuOpen);
-
-   // const { openModal } = useModal();
+   const isAdmin = member.role === "admin";
    const router = useRouter();
+   const t = useTranslations()
 
-   // const handleAddToNetwork = (profileId) => {
-   //    router.replace(`?profileId=${profileId}`);
-   //    openModal("choose-network")
-   // }
-
-   // const highlightText = (text) => {
-   //    if (!searchTerm) return text;
-
-   //    const regex = new RegExp(`(${searchTerm})`, 'gi');
-   //    const parts = text.split(regex);
-
-   //    return parts.map((part, index) => (
-   //       regex.test(part) ? <span key={index} className="bg-yellow-200">{part}</span> : part
-   //    ));
-   // };
-
-   const businessNetworks = companiesList;
-
+   const { onOpen } = useModal();
+   const businessNetworks = member.profiles.business_networks
+      ? businessNetworksType.filter(el => member.profiles.business_networks.find(bns => bns === el.name))
+      : [];
 
    return (
-      <div className={`bg-white shadow-md rounded-lg p-4 border border-gray-100 relative`}>
+      <div className="group bg-white rounded-xl p-5 border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all space-y-3">
+         {/* Header section with avatar and basic info */}
+         <div className='flex items-start gap-5'>
+            <Avatar className="h-20 w-20 rounded-xl ring-2 ring-gray-100">
+               <AvatarImage src={member.profiles.avatar} className="object-cover" />
+               <AvatarFallback className="bg-indigo-50">
+                  <img src={'/blank_profile.png'} alt="avatar" className="h-full w-full object-cover" />
+               </AvatarFallback>
+            </Avatar>
 
-         {/* Actions Menu */}
-         <div className="relative text-right -mb-3">
+            <div className='flex-1 min-w-0'>
+               <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex items-center gap-2">
+                     <h2 className="text-lg font-semibold text-gray-900 truncate">{member.profiles.name}</h2>
+                     {isAdmin && (
+                        <span className='inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-red-50 text-red-700 rounded-full border border-red-100'>
+                           {t("admin")}
+                        </span>
+                     )}
+                  </div>
+
+                  <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
+                     <DropdownMenuTrigger className="focus:outline-none">
+                        <div className="p-1 rounded-lg hover:bg-gray-100 transition-colors">
+                           <EllipsisVertical className="h-5 w-5 text-gray-500" />
+                        </div>
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(`/public-profile/${member.profiles.$id}`)}>
+                           {t("view_profile")}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                           onOpen("invite-modal", { recipient: memberProfile, type: "networks" })
+                           setDropdownOpen(false)
+                        }}>
+                           {t("invite_network")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                           onOpen("invite-modal", { recipient: member, type: "groups" })
+                           setDropdownOpen(false);
+                        }}>
+                           {t("invite_group")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                           onOpen("create-meeting", { recipient: member })
+                           // setDropdownOpen(false);
+                        }}>
+                           {t("create_meet")}
+                        </DropdownMenuItem>
+                     </DropdownMenuContent>
+                  </DropdownMenu>
+               </div>
+               {member.profiles.job_title && (
+                  <p className='text-sm font-medium text-indigo-600 mb-0.5'>{member.profiles.job_title}</p>
+               )}
+               {member.profiles.company && (
+                  <div className="flex items-center gap-2">
+                     <p className='text-sm text-gray-600'>{member.profiles.company}</p>
+                     {member.profiles.company_logo && (
+                        <img
+                           src={member.profiles.company_logo}
+                           alt={member.profiles.company}
+                           className="h-5 w-5 object-contain"
+                        />
+                     )}
+                  </div>
+               )}
+            </div>
+         </div>
+         <div className='flex items-center gap-1'>
+            {
+               businessNetworks.length !== 0 &&
+               businessNetworks.map((el, i) => <img key={i} className='w-[25px] h-[25px]' src={el.image} alt="network_logo" title={el.name} />)
+            }
+         </div>
+         {/* Tab navigation */}
+         <div className="flex border-b border-gray-200">
             <button
-               // onClick={handleMenuToggle}
-               className="text-gray-500 hover:text-gray-700 ml-auto h-5"
-
+               onClick={() => setContentOpen(1)}
+               className={`px-3 py-2 -mb-px text-sm font-medium ${contentOpen === 1
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                  }`}
             >
-               <EllipsisVertical size={20} />
+               {t("contact")}
             </button>
+            <button
+               onClick={() => setContentOpen(2)}
+               className={`px-3 py-2 -mb-px text-sm font-medium ${contentOpen === 2
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                  }`}
+            >
+               {t("info")}
+            </button>
+            <button
+               onClick={() => setContentOpen(3)}
+               className={`px-3 py-2 -mb-px text-sm font-medium ${contentOpen === 3
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                  }`}
+            >
+               {t("search")}
+            </button>
+            <button
+               onClick={() => setContentOpen(4)}
+               className={`px-3 py-2 -mb-px text-sm font-medium ${contentOpen === 4
+                  ? 'text-indigo-600 border-b-2 border-indigo-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                  }`}
+            >
+               {t("meets")}
+            </button>
+         </div>
 
-            {/* Dropdown Menu */}
-            {isMenuOpen && (
-               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg text-left">
-                  <ul className="py-1">
-                     <li>
-                        <a href={`/profile/#hash`} className="block underline px-4 py-2 text-indigo-500 hover:text-indigo-700 hover:bg-gray-100">Näytä profiili</a>
-                     </li>
-                     <li>
-                        <button  className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left">Kutsu verkostoon</button>
-                     </li>
-                     <li>
-                        <button onClick={() => {
-                           // setChooseGroupModalOpen(true)
-                           // router.replace(`?profileId=${member.id}`);
-                        }} className="block px-4 py-2 text-gray-800 hover:bg-gray-100 w-full text-left">Kutsu ryhmään</button>
-                     </li>
-                     {/* <li>
-                        <a href="#" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Change Role</a>
-                     </li>
-                     <li>
-                        <a href="#" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Add to Contacts</a>
-                     </li>
-                     <li>
-                        <a href="#" className="block px-4 py-2 text-gray-800 hover:bg-gray-100">Send Message</a>
-                     </li> */}
-                  </ul>
-               </div>
-            )}
-         </div>
-         <div className='flex items-center'>
-            <div className='mr-5'>
-               <img className="w-24 h-24 rounded mx-auto object-cover" src={'/blank_profile.png'} alt="Avatar" />
-            </div>
-            <div>
-               <h2 className="text-md font-semibold">Semen Meliachenko <span className='font-normal text-red-500'> (ADMIN)</span></h2>
-               <p className='text-indigo-500'>Software Engineer</p>
-               <p>RespaSolutions Oy</p>
-            </div>
-            <div className='ml-auto'>
-               {
-                  businessNetworks.length !== 0 &&
-                  businessNetworks.map((el, i) => <img key={i} className='w-[20px] h-[20px]' src={el.image} alt="network_logo" title={el.name} />)
-               }
-            </div>
-         </div>
-         <div className='w-24 h-[50px] mt-1'>
-            <img className='w-full h-full object-contain' src={"/site_logo.png"} alt="company logo" />
-         </div>
-         <hr className='my-5' />
-         <div className="flex items-start justify-center flex-col min-h-[150px]">
+         {/* Tab content */}
+         <div className="min-h-[180px]">
             {contentOpen === 1 && (
-               <div className="space-y-3">
-                  {/* {
-                     member.phone && ( */}
-                        <div className="flex items-center">
-                           <div className="rounded bg-indigo-100 p-[5px] mr-2">
-                              <Phone size={18} className='text-indigo-700' />
+               <div className="grid gap-3">
+                  {member.profiles.searching && (
+                     <div className="rounded-lg p-3 border border-indigo-100 hover:border-indigo-200">
+                        <div className="flex items-start gap-3">
+                           <div className="bg-white rounded-lg">
+                              <Search className="h-5 w-5 text-indigo-600" />
                            </div>
-                           <span>0467204143</span>
-                        </div>
-                     {/* )
-                  } */}
-                  {/* {
-                     member.email_address && ( */}
-                        <div className="flex items-center">
-                           <div className="rounded bg-indigo-100 p-1 mr-2">
-                              <Mail size={18} className='text-indigo-700' />
+                           <div>
+                              <h3 className="text-sm font-medium text-indigo-900 mb-1">{t("currently_searching_for")}</h3>
+                              <p className="text-sm text-indigo-700">
+                                 {member.profiles.searching}
+                              </p>
                            </div>
-                           <span>sem.elmlm@gmail.com</span>
                         </div>
-                     {/* )
-                  } */}
-                  {/* {
-                     member.address1 && ( */}
-                        <div className="flex items-center">
-                           <div className="rounded bg-indigo-100 p-1 mr-2">
-                              <MapPin size={18} className='text-indigo-700' />
-                           </div>
-                           <span>HELSINKI</span>
+                     </div>
+                  )}
+
+                  {member.profiles.phone && member.profiles.show_phone && (
+                     <a
+                        href={`tel:${member.profiles.phone}`}
+                        className="flex items-center gap-3 p-1 rounded-lg hover:bg-gray-50 group-hover:bg-gray-50/50 transition-colors"
+                     >
+                        <div className="rounded-lg bg-indigo-50 p-2 group-hover:bg-indigo-100 transition-colors">
+                           <Phone className='h-4 w-4 text-indigo-600' />
                         </div>
-                     {/* )
-                  } */}
+                        <span className="text-sm text-gray-600 group-hover:text-gray-900">{member.profiles.phone}</span>
+                     </a>
+                  )}
+
+                  {member.profiles.email && member.profiles.show_email && (
+                     <a
+                        href={`mailto:${member.profiles.email}`}
+                        className="flex items-center gap-3 p-1 rounded-lg hover:bg-gray-50 group-hover:bg-gray-50/50 transition-colors"
+                     >
+                        <div className="rounded-lg bg-indigo-50 p-2 group-hover:bg-indigo-100 transition-colors">
+                           <Mail className='h-4 w-4 text-indigo-600' />
+                        </div>
+                        <span className="text-sm text-gray-600 group-hover:text-gray-900">{member.profiles.email}</span>
+                     </a>
+                  )}
+                  {member.profiles.location && (
+                     <div className="flex items-center gap-3 p-1 rounded-lg group-hover:bg-gray-50/50 transition-colors">
+                        <div className="rounded-lg bg-indigo-50 p-2 group-hover:bg-indigo-100 transition-colors">
+                           <MapPin className='h-4 w-4 text-indigo-600' />
+                        </div>
+                        <span className="text-sm text-gray-600">{member.profiles.location}</span>
+                     </div>
+                  )}
                </div>
             )}
+
             {contentOpen === 2 && (
-               <div className='space-y-1'>
-                  <div>
-                     <strong className="text-gray-700">Esittely:</strong>
-                     <p className="text-gray-600 text-sm leading-tight">
-                        {/* {highlightText(member.notice)} */}
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur hic cum rerum alias ad in similique fugit nostrum est. Nesciunt molestias suscipit iusto totam earum blanditiis, nulla tenetur veniam placeat.
-                     </p>
-                  </div>
-                  <div>
-                     <strong className="text-gray-700">Tarjoamme:</strong>
-                     <p className="text-gray-600 text-sm leading-tight">
-                        {/* {highlightText(member.offering)} */}
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Ipsa soluta consequuntur laboriosam consequatur modi voluptatibus molestias expedita mollitia magnam vitae numquam dolores dignissimos officiis ut temporibus, hic fugiat aliquam praesentium.
-                     </p>
-                  </div>
-                  <div>
-                     <strong className="text-gray-700">Etsimme:</strong>
-                     <p className="text-gray-600 text-sm leading-tight">
-                        {/* {highlightText(member.searching)} */}
-                        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Officiis suscipit rem vel vitae molestias quidem dolor dolore esse mollitia asperiores. Nihil enim quidem facere quod eos. Dolorem, numquam officia. Reiciendis?
-                     </p>
-                  </div>
+               <div className="space-y-6 py-2">
+                  {member.profiles.introduction && (
+                     <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                           {t("introduction")}
+                           <div className="h-1 w-1 rounded-full bg-gray-300" />
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                           {member.profiles.introduction}
+                        </p>
+                     </div>
+                  )}
+                  {member.profiles.offering && (
+                     <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                           {t("we_offer")}
+                           <div className="h-1 w-1 rounded-full bg-gray-300" />
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                           {member.profiles.offering}
+                        </p>
+                     </div>
+                  )}
+                  {member.profiles.searching && (
+                     <div className="space-y-2">
+                        <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                           {t("looking_for")}
+                           <div className="h-1 w-1 rounded-full bg-gray-300" />
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                           {member.profiles.searching}
+                        </p>
+                     </div>
+                  )}
                </div>
             )}
 
             {contentOpen === 3 && (
-               // <MemberCardWeekSearch profileId={member.profileId} />
-               <MemberCardWeekSearch  />
+               <MemberCardWeekSearch member={memberProfile} />
             )}
-
-
+            {contentOpen === 4 && (
+               <div className="space-y-4">
+                  {meets && meets.map((meet) => (
+                     <div
+                        key={meet.$id}
+                        className="group bg-white rounded-xl p-4 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
+                     >
+                        <div className="flex items-start gap-4">
+                           <div className="shrink-0">
+                              <div className="bg-indigo-50 rounded-lg p-2">
+                                 <Calendar className="h-4 w-4 text-indigo-600" />
+                              </div>
+                           </div>
+                           <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                 <h2 className="text-sm font-semibold text-gray-900 flex-1">
+                                    {meet.title}
+                                 </h2>
+                                 <span className="text-xs self-start font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                                    {format(new Date(meet.date), 'dd.MM.yyyy')}
+                                 </span>
+                              </div>
+                              <div className="flex items-center gap-2 mb-1.5 text-sm text-gray-500">
+                                 <div className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    <span className='text-black'>{meet.location}</span>
+                                 </div>
+                                 <div className="h-1 w-1 rounded-full bg-gray-300" />
+                                 <div className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span className='text-black'>{meet.start_time} - {meet.end_time}</span>
+                                 </div>
+                              </div>
+                              <p className="text-sm text-gray-600 leading-thin">
+                                 {meet.description}
+                              </p>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            )}
          </div>
-         <hr className='my-5' />
-         <div className='flex items-center justify-between'>
-            <button onClick={() => setContentOpen(1)} className={'bg-indigo-100 px-4 py-2 rounded hover:bg-indigo-200 text-indigo-700 transition-all duration-150 ' + `${contentOpen === 1 && "!text-gray-200 bg-indigo-500 hover:text-gray-200 hover:bg-indigo-500"}`}><ContactRound /></button>
-            <button onClick={() => setContentOpen(2)} className={'bg-indigo-100 px-4 py-2 rounded hover:bg-indigo-200 text-indigo-700 transition-all duration-150 ' + `${contentOpen === 2 && "!text-gray-200 bg-indigo-500 hover:text-gray-200 hover:bg-indigo-500"}`}><Info /></button>
-            <button onClick={() => setContentOpen(3)} className={'bg-indigo-100 px-4 py-2 rounded hover:bg-indigo-200 text-indigo-700 transition-all duration-150 ' + `${contentOpen === 3 && "!text-gray-200 bg-indigo-500 hover:text-gray-200 hover:bg-indigo-500"}`}><Search /></button>
-         </div>
-
-         {/* {chooseGroupModalOpen && <ChooseGroupModal setChooseGroupModalOpen={setChooseGroupModalOpen} />} */}
       </div>
    );
 };
 
 export default MemberCard;
-
-

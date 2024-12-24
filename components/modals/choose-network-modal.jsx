@@ -22,13 +22,12 @@ function ChooseNetworkModal({ userProfileId }) {
 
    const [message, setMessage] = useState("")
    const [error, setError] = useState("")
-   const router = useRouter();
-
+   const router = useRouter;
 
    if (!isOpen) return null;
 
    return (
-      <Dialog className="block" open={isOpen && type === "choose_network"} onOpenChange={onClose}>
+      <Dialog className="block" open={isModalOpen} onOpenChange={onClose}>
          <DialogContent className="p-6">
             <DialogHeader>
                <DialogTitle>Valitse verkosto</DialogTitle>

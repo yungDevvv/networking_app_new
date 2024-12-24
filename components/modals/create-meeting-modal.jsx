@@ -40,405 +40,301 @@ import { useRouter } from 'next/navigation';
 // import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { createDocument, updateDocument } from '@/lib/appwrite/server/appwrite';
+import { useUser } from '@/context/user-context';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '../ui/textarea';
 
-
-const minutes = ["00", "15", "30", "45"];
 const hours = ["09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "00"];
+const minutes = ["00", "15", "30", "45"];
 
-const formSchema = z.object({
-    eventType: z.string().min(1, {
-        message: "Valitse tapahtumatyyppi."
-    }),
-    clientName: z.string().min(1, "Asiakkaan nimi vaaditaan."),
-    groupSize: z.preprocess((val) => Number(val), z.number().positive("Ryhmän koon on oltava suurempi kuin 0.")),
-    eventAddress: z.string().min(1, "Tapahtuman osoite vaaditaan."),
-    eventPlace: z.string().min(1, "Tapahtuman paikka vaaditaan."),
-    eventName: z.string().min(1, "Tapahtuman nimi vaaditaan."),
-    eventDate: z.date({ message: "Valitse tapahtuman päivämäärä." }),
-    eventTimeHours: z.any().optional(),
-    eventTimeMinutes: z.any().optional(),
-    instructionsFile: z.any().optional(),
-    additionalServices: z.any().optional(),
-    eventImage: z.any().optional()
-});
+
 
 const CreateMeetingModal = () => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [tab, setTab] = useState(true);
+
+    const user = useUser();
     const router = useRouter();
 
     const { isOpen, onClose, type, data } = useModal();
+    const t = useTranslations();
+
+    const formSchema = z.object({
+        title: z.string().min(1, {
+            message: t("meeting_title_required")
+        }),
+        description: z.string().min(1, {
+            message: t("meeting_description_required")
+        }),
+        start_time: z.any().refine((val) => val !== '', {
+            message: t("meeting_start_time_required")
+        }),
+        end_time: z.any().refine((val) => val !== '', {
+            message: t("meeting_end_time_required")
+        }),
+        date: z.any().refine((val) => val !== '', {
+            message: t("meeting_date_required")
+        }),
+        location: z.string().min(1, {
+            message: t("meeting_location_required")
+        })
+    });
 
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            invited_user: null,
-            meet_title: '',
-            meet_description: '',
-            meet_start_time: '',
-            meet_end_time: '',
-            meet_date: '',
-            meet_location: ''
+            title: '',
+            description: '',
+            start_time: '',
+            end_time: '',
+            date: '',
+            location: ''
         }
     });
 
-    const isModalOpen = isOpen && type === "create-meeting";
-    const isLoading = form.formState.isSubmitting;
-    const { reset, setValue } = form;
+    const { reset } = form;
 
-    const onSubmit = async (data) => {
-       console.log(data)
+    const { toast } = useToast();
+
+    const isModalOpen = isOpen && type === "create-meeting";
+
+    const onSubmit = async (values) => {
+        if (data.edit) {
+            try {
+                setIsLoading(true);
+
+                const res = await updateDocument("main_db", "meets", data.meet.$id, {
+                    ...values
+                });
+
+                toast({
+                    variant: "success",
+                    title: "Tapaaminen",
+                    description: "Tapaaminen on talennettu onnistuneesti."
+                })
+            } catch (error) {
+                console.error("Error creating meeting:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        } else {
+            try {
+                setIsLoading(true);
+
+                const res = await createDocument("main_db", "meets", {
+                    body: {
+                        profiles: data.recipient.$id,
+                        sender_id: user.$id,
+                        ...values
+                    }
+                });
+
+                toast({
+                    variant: "success",
+                    title: "Tapaaminen",
+                    description: "Tapaaminen on luotu onnistuneesti."
+                })
+            } catch (error) {
+                console.error("Error creating meeting:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        router.refresh();
+        onClose();
+        form.reset();
     };
+
+    useEffect(() => {
+        if (data.edit) {
+            reset({
+                title: data.meet.title || '',
+                description: data.meet.description || '',
+                start_time: data.meet.start_time || '',
+                end_time: data.meet.end_time || '',
+                date: new Date(data.meet.date) || '',
+                location: data.meet.location || ''
+            });
+        }
+
+        return () => {
+            document.body.style.pointerEvents = "auto"
+        }
+    }, []);
 
     return (
         <Dialog open={isModalOpen} onOpenChange={onClose}>
-            <DialogContent className='bg-white text-black p-0'>
-                <DialogHeader className='pt-3 px-6'>
-                    <DialogTitle className='text-2xl text-center font-bold'>
-                        {data.edit
-                            ? "Muokkaa tapaaminen"
-                            : "Luo uusi tapaaminen"
-                        }
+            <DialogContent className="min-h-[450px] flex flex-col">
+                <DialogHeader>
+                    <DialogTitle>
+                        {data?.edit ? t("edit_meeting") : t("create_meeting")}
                     </DialogTitle>
+                    <div className="flex border-b border-gray-200 !mt-3">
+                        <button
+                            onClick={() => setTab(true)}
+                            className={`px-3 py-2 -mb-px text-sm font-medium ${tab
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                                }`}
+                        >
+                            {t("basic_info")}
+                        </button>
+                        <button
+                            onClick={() => setTab(false)}
+                            className={`px-3 py-2 -mb-px text-sm font-medium ${!tab
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
+                                }`}
+                        >
+                            {t("notes")}
+                        </button>
+                    </div>
                 </DialogHeader>
-                <DialogDescription></DialogDescription>
-                <Form {...form} onSubmit={form.handleSubmit(onSubmit)}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="px-6 space-y-2 max-sm:mx-0">
-                        <div className="flex max-sm:block max-sm:space-y-3">
-
-                            {/* Client Name */}
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='flex flex-col h-full flex-1'>
+                        <div className={tab ? "block space-y-4 flex-1" : "hidden"}>
                             <FormField
                                 control={form.control}
-                                name="clientName"
+                                name="title"
                                 render={({ field }) => (
-                                    <FormItem className="mr-1 max-sm:ml-0 w-full">
-                                        <FormLabel className="block mb-1">Asiakkaan nimi</FormLabel>
+                                    <FormItem>
+                                        <FormLabel>{t("meeting_title")}</FormLabel>
                                         <FormControl>
-                                            <Input {...field} />
+                                            <Input placeholder={t("meeting_title")} {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
 
-                            {/* Event Name */}
-                            <FormField
-                                control={form.control}
-                                name="eventName"
-                                render={({ field }) => (
-                                    <FormItem className="ml-1 max-sm:mr-0 w-full">
-                                        <FormLabel className="block mb-1">Tapahtuman nimi</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="date"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("meeting_date")}</FormLabel>
+                                            <FormControl>
+                                                <DatePicker {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                        <div className="flex max-sm:block max-sm:space-y-3">
-
-                            {/* Event Address */}
-                            <FormField
-                                control={form.control}
-                                name="eventAddress"
-                                render={({ field }) => (
-                                    <FormItem className="mr-1 max-sm:mr-0 w-full">
-                                        <FormLabel className="block mb-1">Tapahtuman osoite</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Event Place */}
-                            <FormField
-                                control={form.control}
-                                name="eventPlace"
-                                render={({ field }) => (
-                                    <FormItem className="ml-1 max-sm:ml-0 w-full">
-                                        <FormLabel className="block mb-1">Tapahtuman paikkakunta</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Helsinki" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                        </div>
-
-                        <div className="flex max-sm:block max-sm:space-y-3">
-
-                            {/* Event Date */}
-                            <FormField
-                                control={form.control}
-                                name="eventDate"
-                                render={({ field }) => (
-                                    <FormItem className="mr-1 max-sm:mr-0 w-full ">
-                                        <FormLabel className="block mb-1">Tapahtuman päivämäärä</FormLabel>
-                                        <FormControl>
-                                            <DatePicker {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            >
-                            </FormField>
-
-                            {/* Event Time */}
-                            <div className='w-full'>
-                                <FormLabel className="block mb-1">Tapahtuman kellonaika</FormLabel>
-                                <div className='flex w-full items-center'>
-                                    <FormField
-                                        control={form.control}
-                                        name="eventTimeHours"
-                                        render={({ field }) => (
-                                            <FormItem className="max-sm:ml-0 w-full">
-                                                <FormControl>
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                    >
-                                                        <SelectTrigger className="w-full">
-                                                            <SelectValue placeholder={data && data?.event?.event_time ? data.event.event_time.split(":")[0] : "00"} />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectGroup>
-                                                                {hours.map(hour => (
-                                                                    <SelectItem className="m-0 p-1" key={hour} value={hour}>
-                                                                        {hour}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectGroup>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
-                                    <span className='px-1'> : </span>
-                                    <FormField
-                                        control={form.control}
-                                        name="eventTimeMinutes"
-                                        render={({ field }) => (
-                                            <FormItem className="max-sm:ml-0 w-full">
-                                                {/* <FormLabel className="block mb-1">Tapahtuman kellonaika</FormLabel> */}
-                                                <FormControl>
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                    >
-                                                        <SelectTrigger className="w-full capitalize">
-                                                            <SelectValue placeholder={data && data?.event?.event_time ? data.event.event_time.split(":")[1] : "00"} />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectGroup>
-                                                                {minutes.map(minutes => (
-                                                                    <SelectItem key={minutes} value={minutes}>
-                                                                        {minutes}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectGroup>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    >
-                                    </FormField>
-                                </div>
-
+                                <FormField
+                                    control={form.control}
+                                    name="location"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("meeting_location")}</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder={t("meeting_location")} {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
-                        </div>
 
-                        <div className="flex max-sm:block max-sm:space-y-3">
-                            {/* Group size */}
-                            <FormField
-                                control={form.control}
-                                name="groupSize"
-                                render={({ field }) => (
-                                    <FormItem className="mr-1 max-sm:mr-0 w-full">
-                                        <FormLabel className="block mb-1">Ryhmän koko</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Event Type */}
-                            <FormField
-                                control={form.control}
-                                name="eventType"
-                                render={({ field }) => (
-                                    <FormItem className="ml-1 max-sm:ml-0 w-full">
-                                        <FormLabel className="block mb-1">Tapahtuman tyyppi</FormLabel>
-                                        <FormControl>
+                            <div className="grid grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="start_time"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("meeting_start_time")}</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
+                                                defaultValue={field.value}
                                             >
-                                                <SelectTrigger className="w-full capitalize">
-                                                    <SelectValue placeholder={data && data?.event?.event_type ? data.event.event_type : "Valitse tapahtuman tyyppi"} />
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={t("select_time")} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectGroup>
-                                                        {eventTypes.map((type) => (
-                                                            <SelectItem key={type.value} value={type.value}>
-                                                                {type.label}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectGroup>
+                                                    {hours.map((hour) => (
+                                                        <SelectGroup key={hour}>
+                                                            {minutes.map((minute) => (
+                                                                <SelectItem
+                                                                    key={`${hour}:${minute}`}
+                                                                    value={`${hour}:${minute}`}
+                                                                >
+                                                                    {`${hour}:${minute}`}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                        {/* Additional Services */}
-                        <FormField
-                            control={form.control}
-                            name="additionalServices"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Lisäpalvelut</FormLabel>
-                                    <FormControl>
-                                        <MultipleSelectWithCheckbox
-                                            placeholder="Valitse lisäpalvelut"
-                                            options={['Ruokailu', 'Kuljetus', 'Valokuvaus', 'Majoitus']}
-                                            field={field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <div className='w-full'>
-                            <FormLabel>Ohjelma - FI / EN</FormLabel>
-                            <div className='flex'>
-                                <div className='max-w-[50%] w-full mr-1'>
-                                    <CKeditor
-                                        content={eventDescriptionText}
-                                        handleChange={handleChangeFI} />
-                                </div>
-                                <div className='max-w-[50%] w-full ml-1'>
-                                    <div className='w-[300px] relative'>
-                                        <CKeditor
-                                            content={enEventDescriptionText}
-                                            handleChange={handleChangeEN} />
-                                    </div>
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="end_time"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("meeting_end_time")}</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={t("select_time")} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {hours.map((hour) => (
+                                                        <SelectGroup key={hour}>
+                                                            {minutes.map((minute) => (
+                                                                <SelectItem
+                                                                    key={`${hour}:${minute}`}
+                                                                    value={`${hour}:${minute}`}
+                                                                >
+                                                                    {`${hour}:${minute}`}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
                         </div>
-
-                        <div className="flex max-sm:block max-sm:space-y-3">
+                        <div className={!tab ? "block mb-auto" : "hidden"}>
                             <FormField
                                 control={form.control}
-                                name="instructionsFile"
+                                name="description"
                                 render={({ field }) => (
-                                    <FormItem className="mr-1 max-sm:ml-0 w-full">
-                                        <FormLabel className="block mb-1" >Tapahtumaohjeistus</FormLabel>
-                                        <FormControl className="cursor-pointer">
-                                            <label className='w-full flex items-center justify-center cursor-pointer bg-clientprimary text-white h-9 px-3 py-1 rounded-md font-semibold'>
-
-                                                {form.getValues("instructionsFile")
-                                                    ? <span className="text-sm italic">{form.getValues("instructionsFile")[0].name}</span>
-                                                    : <span className="text-sm">{form.formState.defaultValues.instructionsFile ? "Vaihda ohjeistus" : "Lataa ohjeistus"}</span>
-                                                }
-
-                                                <Input type="file" className="hidden" onChange={(e) => field.onChange(e.target.files)} />
-                                            </label>
+                                    <FormItem>
+                                        <FormLabel>{t("notes")}</FormLabel>
+                                        <FormControl>
+                                            <Textarea className="min-h-[212px]" {...field} />
                                         </FormControl>
                                         <FormMessage />
-
-                                        {form.getValues("instructionsFile") && (
-                                            <div className="w-full flex items-center justify-between">
-
-                                                <Button variant="link" type="button" asChild>
-                                                    <Link className='flex items-center !p-0 !h-7' target="_blank" rel="noopener noreferrer" href={URL.createObjectURL(form.getValues("instructionsFile")[0])}><Eye className="mr-1 w-5 h-5" /> Näytä uusi ohjeistus</Link>
-                                                </Button>
-                                                <span className="cursor-pointer" onClick={() => {
-                                                    setValue("instructionsFile", null);
-                                                }}>
-                                                    <X className="w-4 h-4" />
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {data && data.event?.instructions_file && form.getValues("instructionsFile") === null && (
-                                            <Button variant="link" type="button" asChild>
-                                                <Link className='flex items-center !p-0 !h-7' target="_blank" rel="noopener noreferrer" href={"https://supa.crossmedia.fi/storage/v1/object/public/" + data.event.instructions_file}><Eye className="mr-1 w-5 h-5" /> Näytä ohjeistus</Link>
-                                            </Button>
-                                        )}
                                     </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="eventImage"
-                                render={({ field }) => (
-                                    <FormItem className="ml-1 max-sm:ml-0 w-full">
-                                        <FormLabel className="block mb-1">Tapahtuman kuva</FormLabel>
-                                        <FormControl className="cursor-pointer">
-                                            <label className={cn('w-full flex items-center justify-center cursor-pointer bg-clientprimary text-white h-9 px-3 py-1 rounded-md font-semibold', eventImage && 'italic')}>
-                                                {eventImage
-                                                    ? <span className="text-sm">{eventImage.name}</span>
-                                                    : <span className="text-sm">{data && data.event?.event_image ? "Vaihda kuva" : "Lataa kuva"}</span>
-                                                }
-                                                <Input type="file" className="hidden" onChange={(e) => {
-                                                    field.onChange(e.target.files)
-                                                    setEventImage(e.target?.files[0] ? e.target.files[0] : null)
-                                                }} />
-                                            </label>
-                                        </FormControl>
-                                        <FormMessage />
-
-                                        {data && data.event?.event_image && !eventImage && (
-                                            <Button variant="link" type="button" asChild>
-                                                <Link className='flex items-center !p-0 !h-7' target="_blank" rel="noopener noreferrer" href={"https://supa.crossmedia.fi/storage/v1/object/public/" + data.event.event_image}><Eye className="mr-1 w-5 h-5" /> Näytä kuva</Link>
-                                            </Button>
-                                        )}
-
-                                        {eventImage && (
-                                            <div className="w-full flex items-center justify-between">
-                                                <Button variant="link" type="button" asChild>
-                                                    <Link className='flex items-center !p-0 !h-7' target="_blank" rel="noopener noreferrer" href={URL.createObjectURL(eventImage)}><Eye className="mr-1 w-5 h-5" /> Näytä uusi kuva</Link>
-                                                </Button>
-                                                <span className="cursor-pointer" onClick={() => {
-                                                    setEventImage(null);
-                                                    setValue("eventImage", null);
-                                                }}>
-                                                    <X className="w-4 h-4" />
-                                                </span>
-                                            </div>
-                                        )}
-                                    </FormItem>
-
                                 )}
                             />
                         </div>
 
-                        <DialogFooter className="pb-3">
-                            {data?.duplicate && <Button type="submit" disabled={isLoading}>{isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Luo tapahtuma"}</Button>}
-                            {!data?.duplicate && <Button type="submit" disabled={isLoading}>{isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : data.edit ? "Muokkaa tapahtuma" : "Luo tapahtuma"}</Button>}
+                        <DialogFooter className="self-end mt-4">
+                            <Button type="submit" disabled={isLoading}>
+                                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {data?.edit ? t("save_changes") : t("create_meeting")}
+                            </Button>
                         </DialogFooter>
                     </form>
                 </Form>
             </DialogContent>
         </Dialog>
     );
-}
+};
 
 export default CreateMeetingModal;
-
-
-// create-event-modal.jsx:307 Uncaught (in promise) ReferenceError: eventImageFileName is not defined
-//     at onSubmit (create-event-modal.jsx:307:27)

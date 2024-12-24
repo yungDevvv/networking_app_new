@@ -3,7 +3,6 @@ import { getLoggedInUser } from './lib/appwrite/server/appwrite';
 
 
 export async function middleware(request) {
-  // Пути, которые не требуют авторизации
   const publicPaths = [
     '/login',
     '/register',
@@ -11,22 +10,21 @@ export async function middleware(request) {
     '/update-password',
   ];
 
-  // Если текущий путь совпадает с одним из публичных, пропускаем
   if (publicPaths.some((path) => request.nextUrl.pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
   try {
-    // Проверяем, существует ли пользователь
-    const user = await getLoggedInUser(); // Получение текущего пользователя через Appwrite SDK.
+   
+    const user = await getLoggedInUser(); 
+
     if (user) {
-      return NextResponse.next(); // Если пользователь найден, пропускаем запрос
+      return NextResponse.next(); 
     }
   } catch (error) {
-    console.error('Error fetching user:', error); // Логируем ошибку
+    console.error('Error fetching user:', error); 
   }
 
-  // Пользователь не авторизован — перенаправляем на страницу входа
   const url = request.nextUrl.clone();
   url.pathname = '/login';
   return NextResponse.redirect(url);

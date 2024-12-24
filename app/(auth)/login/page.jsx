@@ -13,14 +13,13 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { account } from "@/lib/appwrite/client/appwrite";
 import { signInWithEmail } from "@/lib/appwrite/server/appwrite";
 
-export default function Page({ }) {
+export default function Page() {
   const router = useRouter();
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -28,21 +27,21 @@ export default function Page({ }) {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
-
-
   const handleLogin = async (formData) => {
     setErrorMessage("");
     setIsLoading(true);
 
     try {
-      await signInWithEmail(formData.email, formData.password)
+      await signInWithEmail(formData.email, formData.password);
+
     } catch (error) {
-      // alert(error);
-      // setErrorMessage(error);
-      // console.error(error);
+      setErrorMessage(error.message || "An error occurred during login");
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
+
+    router.push("/dashboard");
   };
 
   // useEffect(() => {
