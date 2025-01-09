@@ -49,6 +49,8 @@ import { storage } from '@/lib/appwrite/client/appwrite';
 import { cn } from '@/lib/utils';
 import { useDocuments } from '@/hooks/use-documents';
 import { useModal } from '@/hooks/use-modal';
+import SVGComponent from '@/components/svg-image';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
     first_name: z.string()
@@ -88,9 +90,11 @@ export default function Page({ }) {
 
     const user = useUser();
 
-    console.log(user)
+    const { toast } = useToast();
+
     const { onOpen } = useModal();
 
+    const [open, setOpen] = useState(false);
 
     const form = useForm({
         resolver: zodResolver(formSchema),
@@ -131,9 +135,18 @@ export default function Page({ }) {
                 updatedUser
             );
 
-            console.log("Update response:", response);
+            toast({
+                variant: "success",
+                title: "Profiili",
+                description: "Tiedot on tallennettu onnistuneesti.",
+            })
         } catch (error) {
             console.error("Error updating profile:", error);
+            toast({
+                title: "Error",
+                description: "Tiedot ei ole tallennettu.",
+                variant: "destructive"
+            })
         } finally {
             setIsLoading(false);
         }
@@ -169,11 +182,11 @@ export default function Page({ }) {
     if (!user) return null;
 
     return (
-        <div className='w-full max-w-5xl px-10 mx-auto h-full'>
-            <h1 className='text-2xl font-semibold mb-10'>{t("edit_profile")}</h1>
+        <div className='w-full max-w-5xl pl-10 max-lg:pl-5 h-full pb-10 max-sm:pl-0'>
+            <h1 className='text-2xl font-semibold mb-10 max-md:text-xl max-md:mb-5'>{t("edit_profile")}</h1>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-y-3 gap-x-6">
                         <FormField
                             control={form.control}
                             name="first_name"
@@ -237,7 +250,7 @@ export default function Page({ }) {
                                 <FormItem className="flex flex-col">
                                     <FormLabel>{t("company")}</FormLabel>
                                     <div className='flex items-center'>
-                                        <Dialog>
+                                        <Dialog open={open} onOpenChange={setOpen}>
                                             <DialogTrigger asChild>
                                                 <FormControl>
                                                     <Button
@@ -261,31 +274,30 @@ export default function Page({ }) {
                                                 <DialogDescription className="hidden"></DialogDescription>
                                                 <Command>
                                                     <CommandInput
-                                                        placeholder="Search companies..."
+                                                        placeholder={t("search_companies")}
                                                         className="h-[55px]"
                                                     />
                                                     <CommandList>
                                                         <CommandEmpty className="w-full flex justify-center my-5"><Loader2 className="text-indigo-500 h-4 w-4 animate-spin" /></CommandEmpty>
 
                                                         <CommandGroup className="!space-y-2">
-
                                                             {companies && companies.map((company) => (
                                                                 <CommandItem
                                                                     value={company.name}
                                                                     key={company.name}
                                                                     onSelect={() => {
                                                                         form.setValue("company", company.$id);
+                                                                        setOpen(false);
                                                                     }}
-                                                                    className="text-base font-medium cursor-pointer !bg-white border-b border-indigo-400 last:border-b-0 py-3 mx-4 hover:!text-indigo-500 hover:shadow-sm"
+                                                                    className="text-base font-medium cursor-pointer !bg-white last:border-b-0 py-3 mx-4 hover:!text-indigo-500 hover:shadow-sm"
                                                                 >
-                                                                    <img
-                                                                        src={storage.getFileView(
+                                                                    <SVGComponent
+                                                                        url={storage.getFileView(
                                                                             "logos",
                                                                             company.logo
                                                                         )}
-
                                                                         alt="company logo"
-                                                                        className="w-20 h-10 mr-2"
+                                                                        className="w-20"
                                                                     />
                                                                     {company.name}
                                                                     <Check

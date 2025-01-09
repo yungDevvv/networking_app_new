@@ -36,8 +36,7 @@ import MultipleCheckbox from '../multiple-checkbox';
 
 import { useUser } from '@/context/user-context';
 import { useEffect, useState } from 'react';
-import { account, databases } from '@/lib/appwrite/client/appwrite';
-import { createDatabaseClient, createSessionClient, updateDocument, updateUserProfile } from '@/lib/appwrite/server/appwrite';
+import { updateDocument } from '@/lib/appwrite/server/appwrite';
 
 const formSchema = z.object({
     first_name: z.string()
@@ -68,7 +67,7 @@ const formSchema = z.object({
         .optional()
 });
 
-export default function ProfileModal({ companies, userCompany = null, default_company = null }) {
+export default function ProfileModal() {
     const t = useTranslations();
     const [isLoading, setIsLoading] = useState(false);
     const user = useUser();
@@ -285,7 +284,7 @@ export default function ProfileModal({ companies, userCompany = null, default_co
                                         <FormLabel>{t("business_networks")}</FormLabel>
                                         <FormControl>
                                             <MultipleCheckbox
-                                                placeholder="Valitse verkostot"
+                                                placeholder={t("select_networks")}
                                                 options={businessNetworksType}
                                                 field={field}
                                             />

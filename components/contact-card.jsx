@@ -24,8 +24,11 @@ import { useModal } from '@/hooks/use-modal';
 import { useTranslations } from 'next-intl';
 import { businessNetworksType } from '@/types/business-networks-type';
 import { format } from 'date-fns';
+import { createDocument } from '@/lib/appwrite/server/appwrite';
+import SVGComponent from './svg-image';
+import { storage } from '@/lib/appwrite/client/appwrite';
 
-const ContactCard = ({ member, meets }) => {
+const ContactCard = ({ member, meets, currentUser }) => {
    const [contentOpen, setContentOpen] = useState(1);
    const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -37,21 +40,36 @@ const ContactCard = ({ member, meets }) => {
       ? businessNetworksType.filter(el => member.business_networks.find(bns => bns === el.name))
       : [];
 
+   const requestReviewHandler = async () => {
+      try {
+         await createDocument("main_db", "notifications", {
+            body: {
+               profiles: member.$id,
+               type: "review",
+               sender_id: currentUser.$id,
+               entity_id: currentUser.google_review_link,
+            }
+         });
+      } catch (error) {
+         console.error(error);
+      }
+   }
    return (
       <div className="min-w-[380px] max-xs:min-w-[325px] group bg-white rounded-xl p-5 max-xs:p-3 border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all space-y-3">
          {/* Header section with avatar and basic info */}
          <div className='flex items-start gap-5'>
             <Avatar className="h-20 w-20 rounded-xl ring-2 ring-gray-100">
-               <AvatarImage src={member.avatar} className="object-cover" />
+               <AvatarImage src={storage.getFilePreview("avatars", member?.avatar)} alt={member?.name} className="object-cover" />
                <AvatarFallback className="bg-indigo-50">
                   <img src={'/blank_profile.png'} alt="avatar" className="h-full w-full object-cover" />
                </AvatarFallback>
             </Avatar>
 
             <div className='flex-1 min-w-0'>
-               <div className="flex items-center justify-between gap-2 mb-1">
-                  <div className="flex items-center gap-2">
-                     <h2 className="text-lg max-md:text-base font-semibold text-gray-900 truncate">{member.name}</h2>
+               <div className="flex items-center justify-between w-full mb-1">
+                  <div className="gap-2">
+                     <h2 className="text-lg max-md:text-base font-semibold text-gray-900 truncate inline-block">{member.name}</h2>
+
                   </div>
                   <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
                      <DropdownMenuTrigger className="focus:outline-none">
@@ -79,28 +97,30 @@ const ContactCard = ({ member, meets }) => {
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer" onClick={() => {
                            onOpen("create-meeting", { recipient: member })
-                           // setDropdownOpen(false)
+                           setDropdownOpen(false)
                         }}>
                            {t("create_meet")}
                         </DropdownMenuItem>
+                        {currentUser.google_review_link &&
+                           <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                              onOpen("confirm-modal", {
+                                 type: "mail",
+                                 title: t("send_review_request"),
+                                 description: t("confirm_send_review"),
+                                 callback: () => requestReviewHandler()
+                              })
+                              setDropdownOpen(false)
+                           }}>
+                              {t("send_review_request")}
+                           </DropdownMenuItem>
+                        }
                      </DropdownMenuContent>
                   </DropdownMenu>
                </div>
                {member.job_title && (
                   <p className='text-sm font-medium text-indigo-600 mb-0.5'>{member.job_title}</p>
                )}
-               {member.company && (
-                  <div className="flex items-center gap-2">
-                     <p className='text-sm text-gray-600'>{member.company}</p>
-                     {member.company_logo && (
-                        <img
-                           src={member.company_logo}
-                           alt={member.company}
-                           className="h-5 w-5 object-contain"
-                        />
-                     )}
-                  </div>
-               )}
+
             </div>
          </div>
          <div className='flex items-center gap-1'>
@@ -108,6 +128,15 @@ const ContactCard = ({ member, meets }) => {
                businessNetworks.length !== 0 &&
                businessNetworks.map((el, i) => <img key={i} className='w-[25px] h-[25px]' src={el.image} alt="network_logo" title={el.name} />)
             }
+         </div>
+         <div>
+            {member.companies && (
+               <SVGComponent
+                  url="https://appwrite.superman.fi/v1/storage/buckets/logos/files/677ea4fb00213c72e5da/view?project=networking-prod"
+                  className="w-20 inline-block"
+                  alt="Company Logo"
+               />
+            )}
          </div>
          {/* Tab navigation */}
          <div className="flex border-b border-gray-200">
@@ -127,7 +156,7 @@ const ContactCard = ({ member, meets }) => {
                   : 'text-gray-500 hover:text-gray-700 hover:border-gray-300 border-b-2 border-transparent'
                   }`}
             >
-                {t("info")}
+               {t("info")}
             </button>
             <button
                onClick={() => setContentOpen(3)}
@@ -208,7 +237,7 @@ const ContactCard = ({ member, meets }) => {
                   {member.introduction && (
                      <div className="space-y-2 max-md:space-y-1">
                         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                           Introduction
+                           {t("introduction")}
                            <div className="h-1 w-1 rounded-full bg-gray-300" />
                         </h3>
                         <p className="text-sm text-gray-600 leading-relaxed">
@@ -219,7 +248,7 @@ const ContactCard = ({ member, meets }) => {
                   {member.offering && (
                      <div className="space-y-2 max-md:space-y-1">
                         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                           We Offer
+                           {t("offering")}
                            <div className="h-1 w-1 rounded-full bg-gray-300" />
                         </h3>
                         <p className="text-sm text-gray-600 leading-relaxed">
@@ -230,7 +259,7 @@ const ContactCard = ({ member, meets }) => {
                   {member.searching && (
                      <div className="space-y-2 max-md:space-y-1">
                         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                           Looking For
+                           {t("searching")}
                            <div className="h-1 w-1 rounded-full bg-gray-300" />
                         </h3>
                         <p className="text-sm text-gray-600 leading-relaxed">
@@ -247,44 +276,53 @@ const ContactCard = ({ member, meets }) => {
 
             {contentOpen === 4 && (
                <div className="space-y-4">
-                  {meets && meets.map((meet) => (
-                     <div
-                        key={meet.$id}
-                        className="group bg-white rounded-xl p-4 max-xs:p-2.5 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
-                     >
-                        <div className="flex items-start gap-4 max-xs:gap-2 max-md:flex-wrap">
-                           <div className="shrink-0">
-                              <div className="bg-indigo-50 rounded-lg p-2">
-                                 <Calendar className="h-4 w-4 text-indigo-600" />
-                              </div>
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                 <h2 className="text-sm font-semibold text-gray-900 flex-1">
-                                    {meet.title}
-                                 </h2>
-                                 <span className="text-xs self-start font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
-                                    {format(new Date(meet.date), 'dd.MM.yyyy')}
-                                 </span>
-                              </div>
-                              <div className="flex items-center gap-2 mb-1.5 text-sm text-gray-500 max-md:mt-2">
-                                 <div className="flex items-center gap-1">
-                                    <MapPin className="h-4 w-4" />
-                                    <span className='text-black'>{meet.location}</span>
-                                 </div>
-                                 <div className="h-1 w-1 rounded-full bg-gray-300" />
-                                 <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    <span className='text-black'>{meet.start_time} - {meet.end_time}</span>
+                  {meets.length !== 0
+                     ? meets.map((meet) => (
+                        <div
+                           key={meet.$id}
+                           className="group bg-white rounded-xl p-4 max-xs:p-2.5 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
+                        >
+                           <div className="flex items-start gap-4 max-xs:gap-2 max-md:flex-wrap">
+                              <div className="shrink-0">
+                                 <div className="bg-indigo-50 rounded-lg p-2">
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
                                  </div>
                               </div>
-                              <p className="text-sm text-gray-600 leading-thin">
-                                 {meet.description}
-                              </p>
+                              <div className="min-w-0 flex-1">
+                                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <h2 className="text-sm font-semibold text-gray-900 flex-1">
+                                       {meet.title}
+                                    </h2>
+                                    <span className="text-xs self-start font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                                       {format(new Date(meet.date), 'dd.MM.yyyy')}
+                                    </span>
+                                 </div>
+                                 <div className="flex items-center gap-2 mb-1.5 text-sm text-gray-500 max-md:mt-2">
+                                    <div className="flex items-center gap-1">
+                                       <MapPin className="h-4 w-4" />
+                                       <span className='text-black'>{meet.location}</span>
+                                    </div>
+                                    <div className="h-1 w-1 rounded-full bg-gray-300" />
+                                    <div className="flex items-center gap-1">
+                                       <Clock className="h-4 w-4" />
+                                       <span className='text-black'>{meet.start_time} - {meet.end_time}</span>
+                                    </div>
+                                 </div>
+                                 <p className="text-sm text-gray-600 leading-thin">
+                                    {meet.description}
+                                 </p>
+                              </div>
                            </div>
                         </div>
-                     </div>
-                  ))}
+                     ))
+                     : (
+                        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                           <div className="bg-white rounded-full p-3 mb-4 border border-gray-200 shadow-sm">
+                              <Search className="h-5 w-5 text-indigo-500" />
+                           </div>
+                           <h3 className="text-sm font-medium text-gray-900 mb-1">{t("no_meetings")}</h3>
+                        </div>
+                     )}
                </div>
             )}
          </div>
@@ -293,6 +331,3 @@ const ContactCard = ({ member, meets }) => {
 };
 
 export default ContactCard;
-
-
-

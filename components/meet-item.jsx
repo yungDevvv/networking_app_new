@@ -1,17 +1,17 @@
 "use client";
 
-import { Calendar, Clock, MapPin, Trash2, SquarePen, FileText, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Trash2, SquarePen, FileText } from "lucide-react";
 import { Button } from "./ui/button";
 import { useModal } from "@/hooks/use-modal";
 import { format } from "date-fns";
 import { fi, enUS } from 'date-fns/locale'
-import { deleteDocument, updateDocument } from "@/lib/appwrite/server/appwrite";
+import { deleteDocument, } from "@/lib/appwrite/server/appwrite";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
-import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Textarea } from "./ui/textarea";
+import { storage } from "@/lib/appwrite/client/appwrite";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+
 
 const MeetItem = ({ meet, locale }) => {
     const { onOpen } = useModal();
@@ -38,7 +38,6 @@ const MeetItem = ({ meet, locale }) => {
 
         router.refresh();
     };
-
 
     return (
         <>
@@ -77,7 +76,7 @@ const MeetItem = ({ meet, locale }) => {
                     </div>
 
                     {/* Meeting details */}
-                    <div className="flex justify-between gap-4 bg-gray-50 p-4 rounded-lg">
+                    <div className="flex justify-between max-xs:flex-col gap-4 bg-gray-50 p-4 rounded-lg">
                         <div className="flex items-center text-gray-700 gap-2.5">
                             <div className="rounded-lg bg-indigo-50 p-2 shadow-sm">
                                 <Clock size={18} className="text-indigo-500" />
@@ -98,21 +97,20 @@ const MeetItem = ({ meet, locale }) => {
                                 <div className="rounded-lg self-start bg-indigo-50 p-2 shadow-sm">
                                     <FileText size={18} className="text-indigo-500" />
                                 </div>
-                                <span className="text-sm font-medium">{meet.description}</span>
+                                <span className="text-sm font-medium max-w-[500px]">{meet.description}</span>
                             </div>
                         )}
                     </div>
                     {/* Participants */}
                     <div className="flex items-center justify-between pt-2">
                         <div className="flex items-center space-x-3">
-                            <div className="relative">
-                                <div className="w-10 h-10 rounded-full bg-indigo-50 border-2 border-white ring-2 ring-indigo-500/10 flex items-center justify-center">
-                                    <img
-                                        src="/blank_profile.png"
-                                        alt="Profile"
-                                        className="w-full h-full rounded-full object-cover"
-                                    />
-                                </div>
+                            <div className="relative"> 
+                                <Avatar className="h-14 w-14 rounded-xl ring-2 ring-gray-100">
+                                    <AvatarImage src={storage.getFilePreview("avatars", meet.profiles.avatar)} alt={meet.profiles?.name} className="object-cover" />
+                                    <AvatarFallback className="bg-indigo-50">
+                                        <img src={'/blank_profile.png'} alt="avatar" className="h-full w-full object-cover" />
+                                    </AvatarFallback>
+                                </Avatar>
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900 text-sm">{meet.profiles.name}</p>

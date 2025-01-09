@@ -38,20 +38,25 @@ import { Switch } from "@/components/ui/switch"
 import { useUser } from '@/context/user-context';
 import { useEffect, useState } from 'react';
 
-import { updateDocument } from '@/lib/appwrite/server/appwrite';
+import { createRecoveryPassword, createSessionClient, updateDocument } from '@/lib/appwrite/server/appwrite';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useModal } from '@/hooks/use-modal';
+import { useOrigin } from '@/hooks/use-origin';
 
 const formSchema = z.object({
     profile_visibility: z.enum(["everyone", "group", "hidden"]),
     public_profile_visibility: z.boolean(),
     show_email: z.boolean(),
-    show_phone: z.boolean()
+    show_phone: z.boolean(),
+    google_review_link: z.string().optional()
 });
 
 export default function Page() {
     const t = useTranslations();
     const [isLoading, setIsLoading] = useState(false);
+    const origin = useOrigin();
+    const { onOpen } = useModal();
 
     const user = useUser();
 
@@ -63,7 +68,8 @@ export default function Page() {
             profile_visibility: "everyone",
             public_profile_visibility: false,
             show_email: true,
-            show_phone: true
+            show_phone: true,
+            google_review_link: ""
         }
     });
 
@@ -81,11 +87,13 @@ export default function Page() {
                     profile_visibility: values.profile_visibility,
                     public_profile_visibility: values.public_profile_visibility,
                     show_email: values.show_email,
-                    show_phone: values.show_phone
+                    show_phone: values.show_phone,
+                    google_review_link: values.google_review_link
                 }
             );
-            
+
             toast({
+                variant: "success",
                 title: t('toast_profile_title'),
                 description: t('toast_profile_updated')
             })
@@ -102,13 +110,34 @@ export default function Page() {
         }
     }
 
+    const passwordRecovery = async () => {
+
+
+        const res = await createRecoveryPassword(origin + "/update-password");
+
+        // if(res) {
+        toast({
+            variant: "success",
+            title: t('toast_profile_title'),
+            description: t('toast_password_recovery')
+        })
+        // }
+        // toast({
+        //     title: t('toast_profile_title'),
+        //     description: t('toast_error_unknown'),
+        //     variant: "destructive"
+        // });
+        // return;
+    }
+
     useEffect(() => {
         if (user) {
             reset({
                 profile_visibility: user.profile_visibility || "everyone",
                 public_profile_visibility: user.public_profile_visibility || false,
                 show_email: user.show_email || true,
-                show_phone: user.show_phone || true
+                show_phone: user.show_phone || true,
+                google_review_link: user.google_review_link || ""
             });
         }
     }, [user, form]);
@@ -116,8 +145,8 @@ export default function Page() {
     if (!user) return null;
 
     return (
-        <div className='w-full h-full px-10 max-w-5xl mx-auto'>
-            <h1 className='text-2xl font-semibold mb-10'>{t("mine_settings")}</h1>
+        <div className='w-full h-full max-w-5xl pl-10 max-lg:pl-5 mx-auto pb-10 max-sm:pl-0'>
+            <h1 className='text-2xl font-semibold mb-10 max-md:text-xl max-md:mb-5'>{t("mine_settings")}</h1>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
@@ -179,7 +208,7 @@ export default function Page() {
                             name="public_profile_visibility"
                             render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between">
-                                    <div className="space-y-0.5">
+                                    <div className="space-y-0.5 mr-3">
                                         <FormLabel>{t("public_profile")}</FormLabel>
                                         <FormDescription>
                                             {t("public_profile_description")}
@@ -199,7 +228,7 @@ export default function Page() {
                             name="show_email"
                             render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between">
-                                    <div className="space-y-0.5">
+                                    <div className="space-y-0.5 mr-3">
                                         <FormLabel>{t("email_visibility")}</FormLabel>
                                         <FormDescription>
                                             {t("email_visibility_description")}
@@ -219,7 +248,7 @@ export default function Page() {
                             name="show_phone"
                             render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between">
-                                    <div className="space-y-0.5">
+                                    <div className="space-y-0.5 mr-3">
                                         <FormLabel>{t("phone_visibility")}</FormLabel>
                                         <FormDescription>
                                             {t("phone_visibility_description")}
@@ -234,6 +263,49 @@ export default function Page() {
                                 </FormItem>
                             )}
                         />
+
+                        <Separator />
+
+                        <div className="flex justify-between items-center max-xs:flex-col">
+                            <div className="mr-3 space-y-0.5">
+                                <FormLabel>{t("password_recovery")}</FormLabel>
+                                <FormDescription>
+                                    {t("password_recovery_description")}
+                                </FormDescription>
+                            </div>
+
+                            <Button className="max-xs:mt-3 max-xs:w-full" type="button" onClick={() => onOpen("confirm-modal", {
+                                type: "mail",
+                                title: t("password_recovery_confirm_title"),
+                                description: t("password_recovery_confirm_description"),
+                                callback: passwordRecovery
+                            })}>{t("reset_password")}</Button>
+                        </div>
+                        <Separator />
+                        <FormField
+                            control={form.control}
+                            name="google_review_link"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <div className="space-y-0.5">
+                                        <FormLabel>{t("google_review_link")}</FormLabel>
+                                        <FormDescription>
+                                            {t("google_review_description")}
+                                        </FormDescription>
+                                    </div>
+                                    <FormControl>
+                                        <Input
+                                            className="!mt-3"
+                                            placeholder={t("google_review_placeholder")}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                        />
+
+
+                        {/* YOUR CODE HERE */}
                     </div>
 
                     <div className="flex justify-end">

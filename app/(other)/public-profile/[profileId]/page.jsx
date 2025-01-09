@@ -2,7 +2,7 @@ import { getDocument } from "@/lib/appwrite/server/appwrite";
 import { getTranslations } from "next-intl/server";
 
 export default async function Page({ params }) {
-    const { profileId } = params;
+    const { profileId } = await params;
 
     const t = await getTranslations();
 

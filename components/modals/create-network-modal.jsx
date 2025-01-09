@@ -13,7 +13,7 @@ import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useModal } from "@/hooks/use-modal"
 import { createDocument, updateDocument } from "@/lib/appwrite/server/appwrite"
-import { useUser } from "@/context/user-context"
+import { useUpdateUser, useUser } from "@/context/user-context"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 
@@ -46,6 +46,8 @@ export function CreateNetworkModal() {
     const { toast } = useToast();
 
     const { reset } = form;
+
+    const updateUser = useUpdateUser(); 
 
     async function onSubmit(values) {
         if (data.edit) {
@@ -117,7 +119,7 @@ export function CreateNetworkModal() {
                 setIsLoading(false)
             }
         }
-
+        await updateUser();
     }
 
     useEffect(() => {

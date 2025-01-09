@@ -40,8 +40,8 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 
 export function AppSidebar() {
-   const { open, isMobile, openMobile } = useSidebar();
-   console.log(isMobile)
+   const { open, isMobile, openMobile, setOpen } = useSidebar();
+
    const t = useTranslations();
 
    const pathname = usePathname();
@@ -98,28 +98,14 @@ export function AppSidebar() {
       <Sidebar collapsible="icon">
          <SidebarContent>
             <SidebarGroup className="py-0">
-               {/* <div className="flex items-centerjustify-center h-16 py-2">
-                  {open && open
-                     ? (
-                        <h1 className="text-2xl inline-block font-bold text-gray-800 tracking-wide">
-                           <span>My</span>
-                           <span className="text-blue-500"> Network</span>
-                        </h1>
-                     )
-                     : (
-                        <h1 className="text-sm font-bold inline-block text-gray-800 tracking-wide">
-                           <span className="text-blue-500"> Network</span>
-                        </h1>
-                     )
-                  }
-
-               </div> */}
                <div className="flex items-center justify-center h-16 py-2 user-select-none">
-                  <h1 className={cn("text-2xl font-bold flex justify-center w-full text-gray-800 tracking-wide transition-opacity opacity-1", !open && "opacity-0 hidden")}>
+                  <h1 className={cn("text-2xl font-bold flex justify-center w-full text-gray-800 tracking-wide transition-opacity opacity-1",
+                     (!isMobile && !open) && "opacity-0 hidden")}>
                      <span>My</span>
                      <span className="text-blue-500 ml-1"> Network</span>
                   </h1>
-                  <h1 className={cn("font-bold text-2xl w-full transition-opacity flex justify-center opacity-1", open && "opacity-0 hidden")}>
+                  <h1 className={cn("font-bold text-2xl w-full transition-opacity flex justify-center opacity-1",
+                     (isMobile || open) && "opacity-0 hidden")}>
                      <span className="w-fit text-blue-500">N</span>
                   </h1>
                </div>
@@ -139,12 +125,17 @@ export function AppSidebar() {
                            const isActive = pathname === item.url;
 
                            if (item?.sub_menu) return (
-                              <Accordion type="single" collapsible key={item.title}>
+                              <Accordion type="single" collapsible key={item.title} onClick={() => setOpen(true)}>
                                  <AccordionItem value={item.url} className="border-none">
                                     <AccordionTrigger iconHidden={!open} className="!text-base w-full p-2 font-medium !h-10 shadow-sm shadow-indigo-50 hover:no-underline hover:bg-sidebar-accent">
                                        <div className="flex gap-2 items-center">
                                           <CalendarSearch className={cn("mr-1 shrink-0")} />
-                                          {open && <span className={!open ? "w-1" : "w-auto"}>Viikon haut</span>}
+                                          <span className={cn(
+                                             "transform overflow-hidden whitespace-nowrap",
+                                             open ? "w-auto opacity-100" : "w-0 opacity-0"
+                                          )}>
+                                             {t("navbar_week_search")}
+                                          </span>
                                        </div>
                                     </AccordionTrigger>
                                     <AccordionContent className="!border-none !border-0 p-0 !shadow-none !outline-none">
@@ -158,8 +149,8 @@ export function AppSidebar() {
                                           </SidebarMenuSubItem>
                                           <SidebarMenuSubItem>
                                              <SidebarMenuSubButton asChild>
-                                                <Link href={"/dashboard/week-searches"} className={cn(" hover:bg-indigo-50 font-medium !h-9 shadow-sms hadow-indigo-50", !pathname.includes("/dashboard/week-searches/my") && pathname.includes("/dashboard/week-searches") && "bg-indigo-50 !font-semibold ")}>
-                                                   Kaikki
+                                                <Link href={"/dashboard/week-searches"} className={cn(" hover:bg-indigo-50 font-medium !h-9 shadow-sm shadow-indigo-50", !pathname.includes("/dashboard/week-searches/my") && pathname.includes("/dashboard/week-searches") && "bg-indigo-50 !font-semibold ")}>
+                                                   {t("all")}
                                                 </Link>
                                              </SidebarMenuSubButton>
                                           </SidebarMenuSubItem>
@@ -174,13 +165,10 @@ export function AppSidebar() {
                                     <Link href={item.url} className={cn("!text-base hover:bg-indigo-50 font-medium !h-10", pathname.includes(item.url) && "bg-indigo-100 !font-semibold hover:bg-indigo-100")}>
                                        {item.icon(isActive)}
                                        {(open || openMobile) && <span>{item.title}</span>}
-                                       {console.log(open, "OPEN")}
-                                       {console.log(openMobile, "OPEN MOBILE")}
                                     </Link>
                                  </SidebarMenuButton>
                               </SidebarMenuItem>
                            )
-
                         })
                      }
                   </SidebarMenu>
@@ -190,4 +178,3 @@ export function AppSidebar() {
       </Sidebar>
    )
 }
-

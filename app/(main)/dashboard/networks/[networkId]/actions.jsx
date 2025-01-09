@@ -21,17 +21,18 @@ import {
     LogOut
 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useUpdateUser } from "@/context/user-context";
 
 const Actions = ({ network, networkId, user }) => {
     const { onOpen } = useModal();
     const router = useRouter();
-
-    const t = useTranslations(); 
+    const updateUser = useUpdateUser();
+    const t = useTranslations();
 
     const deleteNetworkHandler = async () => {
         try {
             await deleteDocument("main_db", "networks", networkId);
-
+            await updateUser();
             router.push("/dashboard/networks");
         } catch (error) {
             console.log(error);
@@ -44,6 +45,7 @@ const Actions = ({ network, networkId, user }) => {
         try {
             await deleteDocument("main_db", "members", user.$id);
 
+            await updateUser();
             router.push("/dashboard/networks");
 
         } catch (error) {
@@ -60,11 +62,11 @@ const Actions = ({ network, networkId, user }) => {
             <DropdownMenuContent align="end" className="w-[200px]">
                 {!isAdmin && (
                     <DropdownMenuItem
-                        onClick={() => onOpen("confirm-modal", { title: "Oletko varma?", description: "Haluatko varmasti poistua verkostosta?", callback: deleteMemberFromNetworkHandler })}
+                        onClick={() => onOpen("confirm-modal", { title: t("are_you_sure"), description: t("confirm_leave_network"), callback: deleteMemberFromNetworkHandler })}
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                         <LogOut className="mr-2 h-4 w-4" />
-                        Leave Network
+                        {t("leave_network")}
                     </DropdownMenuItem>
                 )}
 
@@ -72,19 +74,15 @@ const Actions = ({ network, networkId, user }) => {
                     <>
                         <DropdownMenuItem onClick={() => onOpen("create-network-modal", { edit: true, network })}>
                             <Settings className="mr-2 h-4 w-4" />
-                            { t('network_settings') }
+                            {t('network_settings')}
                         </DropdownMenuItem>
-                        {/* <DropdownMenuItem>
-                            <Share2 className="mr-2 h-4 w-4" />
-                            Invite Members
-                        </DropdownMenuItem> */}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                            onClick={() => onOpen("confirm-modal", { title: "Oletko varma?", description: "Haluatko varmasti poistua verkoston?", callback: deleteNetworkHandler })}
+                            onClick={() => onOpen("confirm-modal", { title: t("are_you_sure"), description: t("confirm_delete_network"), callback: deleteNetworkHandler })}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Network
+                            {t("delete_network")}
                         </DropdownMenuItem>
                     </>
                 )}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useModal } from "@/hooks/use-modal";
-import ChooseNetworkModal from "../modals/choose-network-modal";
 import CreateMeetingModal from "../modals/create-meeting-modal";
 import ProfileModal from "../modals/profile-modal";
 import { CreateNetworkModal } from "../modals/create-network-modal";
@@ -31,7 +30,6 @@ export const ModalProvider = () => {
          {isOpen && type === "create-network-modal" && <CreateNetworkModal />}
          {isOpen && type === "create-company-modal" && <CreateCompanyModal />}
          {isOpen && type === "create-group-modal" && <CreateGroupModal />}
-         {isOpen && type === "choose_network" && <ChooseNetworkModal />}
          {isOpen && type === "create-meeting" && <CreateMeetingModal />}
          {isOpen && type === "profile-modal" && <ProfileModal />}
       </>

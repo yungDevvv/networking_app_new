@@ -13,15 +13,12 @@ import {
    CardTitle,
    CardFooter
 } from "@/components/ui/card";
-// import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { createDocument, signInWithEmail, signUpWithEmail } from "@/lib/appwrite/server/appwrite";
 
-import { signUpWithEmail } from "@/lib/appwrite/server/appwrite";
-
-export default function Page({ }) {
-   // const supabase = createClient();
+export default function Page() {
 
    const router = useRouter();
 
@@ -39,18 +36,25 @@ export default function Page({ }) {
 
       setErrorMessage("");
       setIsLoading(true);
+
       try {
-         await signUpWithEmail(formData.email, formData.password, `${formData.first_name} ${formData.last_name}`);
+         const newUser = await signUpWithEmail(formData.email, formData.password, `${formData.first_name} ${formData.last_name}`);
+         console.log(newUser)
+         if (newUser) {
+            await signInWithEmail(formData.email, formData.password);
 
-         const { mauticEmailService } = require('@/lib/mautic/mautic');
-         await mauticEmailService.sendEmail('verification', formData.email, {
-            name: `${formData.first_name} ${formData.last_name}`,
-            url: 'https://localhost:3000/verify/',
-            teamName: 'Respa'
-         });
+            await createDocument("main_db", "profiles", {
+               document_id: newUser.$id,
+               body: {
+                  email: formData.email,
+                  name: `${formData.first_name} ${formData.last_name}`,
+               }
+            });
+         }
 
+         router.push("/dashboard/account/profile");
       } catch (error) {
-         setErrorMessage(error);
+         setErrorMessage(error.message);
          console.log(error);
          return;
       } finally {
@@ -65,14 +69,14 @@ export default function Page({ }) {
       <div className="flex h-screen w-full items-center justify-center px-4 bg-indigo-50">
          <Card className="mx-auto w-full max-w-md shadow-xl">
             <CardHeader>
-               <CardTitle className="text-3xl font-semibold text-center">Rekisteröidy</CardTitle>
+               <CardTitle className="text-2xl font-semibold text-center">Rekisteröidy</CardTitle>
                <CardDescription className="text-center">tai <Link href="/login" className="text-indigo-500 font-semibold">kirjaudu sisään</Link></CardDescription>
             </CardHeader>
             <CardContent>
 
                <form onSubmit={handleSubmit(handleRegister)} className="grid">
                   {errorMessage && <p className="text-sm text-center -mt-2 mb-3 text-red-500">{errorMessage}</p>}
-                  <div className="grid gap-2 mb-3">
+                  <div className="grid gap-1 mb-3">
                      <Label htmlFor="first_name">Etunimi</Label>
                      <Input
                         id="first_name"
@@ -82,7 +86,7 @@ export default function Page({ }) {
                      />
                      {errors.first_name && <p className="text-red-500 text-sm -mt-1">{errors.first_name.message}</p>}
                   </div>
-                  <div className="grid gap-2 mb-3">
+                  <div className="grid gap-1 mb-3">
                      <Label htmlFor="last_name">Sukunimi</Label>
                      <Input
                         id="last_name"
@@ -92,7 +96,7 @@ export default function Page({ }) {
                      />
                      {errors.last_name && <p className="text-red-500 text-sm -mt-1">{errors.last_name.message}</p>}
                   </div>
-                  <div className="grid gap-2 mb-3">
+                  <div className="grid gap-1 mb-3">
                      <Label htmlFor="email">Sähköposti</Label>
                      <Input
                         id="email"
@@ -103,7 +107,7 @@ export default function Page({ }) {
                      />
                      {errors.email && <p className="text-red-500 text-sm -mt-1">{errors.email.message}</p>}
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1">
                      <div className="flex items-center">
                         <Label htmlFor="password">Salasana</Label>
                         {/* <Link href="#" className="ml-auto inline-block text-sm underline">
@@ -118,9 +122,9 @@ export default function Page({ }) {
                      />
                      {errors.password && <p className="text-red-500 text-sm -mt-1">{errors.password.message}</p>}
                   </div>
-                  <Link href="/reset-password" className="text-indigo-500 font-semibold text-sm mt-2">
+                  {/* <Link href="/reset-password" className="text-indigo-500 font-semibold text-sm mt-2">
                      Unohditko salasanasi?
-                  </Link>
+                  </Link> */}
                   <Button
                      type="submit"
                      className="w-full mt-6"
@@ -128,14 +132,14 @@ export default function Page({ }) {
                   >
                      {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Rekisteröidy"}
                   </Button>
-                  <Button
+                  {/* <Button
                      type="button"
                      variant="outline"
                      className="w-full mt-3 hover:bg-transparent border border-indigo-500 text-indigo-500 hover:text-indigo-700 hover:border-indigo-700"
                   >
                      <span className="font-medium ">Jatka Google-tilillä</span>
                      <img src="/google.svg" className="w-5 h-5" />
-                  </Button>
+                  </Button> */}
                </form>
             </CardContent>
          </Card>

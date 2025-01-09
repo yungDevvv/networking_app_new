@@ -1,11 +1,12 @@
 import MemberCard from "@/components/member-card";
-import { getDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite";
+import { getDocument, getLoggedInUser, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite";
 import { getTranslations } from 'next-intl/server';
 import Actions from "./actions";
 
 export default async function Page({ params }) {
-    const user = await getLoggedInUser();
+    const user = await getLoggedInUserProfile();
     const t = await getTranslations();
+    
     const { groupId } = await params;
 
     try {
@@ -34,7 +35,7 @@ export default async function Page({ params }) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-5">
                         {
                             group_members.length !== 0
-                                ? group_members.map((member, i) => <MemberCard key={member.$id} member={member} />)
+                                ? group_members.map((member, i) => <MemberCard key={member.$id} member={member} currentUser={user} />)
                                 : <h3>{t("you_are_only_participant")}</h3>
                         }
                     </div>

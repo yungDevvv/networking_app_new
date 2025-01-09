@@ -1,10 +1,10 @@
 import MemberCard from "@/components/member-card";
-import { getDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite";
+import { getDocument, getLoggedInUser, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite";
 import { getTranslations } from 'next-intl/server';
 import Actions from "./actions";
 
 export default async function Page({ params }) {
-   const user = await getLoggedInUser();
+   const user = await getLoggedInUserProfile();
    const t = await getTranslations();
 
    const { networkId } = await params;
@@ -12,12 +12,20 @@ export default async function Page({ params }) {
    try {
       const currentNetwork = await getDocument("main_db", "networks", networkId);
 
+      if (!currentNetwork) {
+         return (
+            <div className="w-full flex items-center justify-center p-8">
+               <h2 className="text-xl text-gray-700">{t("network_not_found")}</h2>
+            </div>
+         )
+      }
+
       const currentMember = currentNetwork?.members.find(member => member.profiles.$id === user.$id);
 
       if (currentMember === undefined) {
          return (
             <div className="w-full flex items-center justify-center p-8">
-               <h2 className="text-xl text-gray-700">You are not a member of this network</h2>
+               <h2 className="text-xl text-gray-700">{t("you_are_not_a_member")}</h2>
             </div>
          )
       }
@@ -27,6 +35,7 @@ export default async function Page({ params }) {
       const getUserProfile = async (id) => {
          try {
             const profile = await getDocument("main_db", "profiles", id);
+
             return profile;
          } catch (error) {
             console.log(error);
@@ -35,13 +44,13 @@ export default async function Page({ params }) {
       }
 
       try {
-         
+
          const memberCards = await Promise.all(members.map(async (member) => {
             const memberProfile = await getUserProfile(member.profiles.$id);
 
             const meets = memberProfile?.meets?.filter(meet => meet.sender_id === user.$id) || [];
-            console.log(meets)
-            return <MemberCard key={member.$id} member={member} meets={meets} memberProfile={memberProfile} />;
+
+            return <MemberCard key={member.$id} member={member} meets={meets} memberProfile={memberProfile} currentUser={user} />;
          }));
 
          return (
@@ -60,10 +69,10 @@ export default async function Page({ params }) {
 
                <div className="my-5">
                   <h4 className="font-semibold mb-3">{t("members")}</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-3 max-2xl:grid-cols-2 max-[1100px]:grid-cols-1 gap-3">
                      {members.length !== 0
                         ? memberCards
-                        : <h3>Olet ainoa osallistuja.</h3>
+                        : <h3>{t("you_are_only_participant")}</h3>
                      }
                   </div>
                </div>
@@ -78,7 +87,7 @@ export default async function Page({ params }) {
          )
       }
    } catch (error) {
-      console.error("ASDASDAS", error)
+      console.log(error)
       return (
          <div className="w-full flex items-center justify-center p-8">
             <h2 className="text-xl text-gray-700">Network not found</h2>

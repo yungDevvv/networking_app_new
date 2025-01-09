@@ -35,8 +35,14 @@ export default function Page() {
       await signInWithEmail(formData.email, formData.password);
 
     } catch (error) {
-      setErrorMessage(error.message || "An error occurred during login");
-      console.log(error);
+      console.log(error.message, "ASDASDASDASD")
+      if (error.message === "Invalid credentials. Please check the email and password.") {
+        setErrorMessage("Virheelliset tunnukset. Tarkista sähköposti ja salasana.")
+      };
+      if (error.message === "Invalid `password` param: Password must be between 8 and 256 characters long.") {
+        setErrorMessage("Salasanan on oltava 8-256 merkkiä pitkä.")
+      }
+      console.log(error)
     } finally {
       setIsLoading(false);
     }
@@ -44,40 +50,17 @@ export default function Page() {
     router.push("/dashboard");
   };
 
-  // useEffect(() => {
-  //   (async () => {
-  //     const { data: initUser, error: initUserError } = await supabase.auth.getUser();
-
-  //     if (initUserError) console.error(initUserError);
-
-  //     if (initUser.user) {
-  //       const { data: user, error: userError } = await supabase
-  //         .from("users")
-  //         .select("active_event")
-  //         .eq("id", initUser.user.id);
-
-  //       if (userError) console.error(userError);
-
-  //       if (user[0]) {
-  //         router.push("/");
-  //       }
-  //     }
-  //   })()
-
-  // }, [])
-
   return (
     <div className="flex h-screen w-full items-center justify-center px-4 bg-indigo-50">
       <Card className="mx-auto w-full max-w-md shadow-xl">
         <CardHeader>
-          <CardTitle className="text-3xl font-semibold text-center">Kirjaudu sisään</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-center">Kirjaudu sisään</CardTitle>
           <CardDescription className="text-center">tai <Link href="/register" className="text-indigo-500 font-semibold">luo uusi tili</Link></CardDescription>
         </CardHeader>
         <CardContent>
-
           <form onSubmit={handleSubmit(handleLogin)} className="grid">
-            {errorMessage && <p className="text-sm -my-2 text-red-500">{errorMessage}</p>}
-            <div className="grid gap-2 mb-5">
+            {errorMessage && <p className="text-red-500 text-sm mb-2">{errorMessage}</p>}
+            <div className="grid gap-1 mb-5">
               <Label htmlFor="email">Sähköposti</Label>
               <Input
                 id="email"
@@ -86,9 +69,9 @@ export default function Page() {
                 className="shadow-sm"
                 {...register("email", { required: "Sähköposti on pakollinen" })}
               />
-              {errors.email && <p className="text-red-500 text-sm -mt-1">{errors.email.message}</p>}
+              {errors.email && <p className="text-red-500 text-sm my-2">{errors.email.message} sssss</p>}
             </div>
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <div className="flex items-center">
                 <Label htmlFor="password">Salasana</Label>
               </div>
@@ -107,14 +90,14 @@ export default function Page() {
             >
               {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Kirjaudu"}
             </Button>
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               className="w-full mt-3 hover:bg-transparent border border-indigo-500 text-indigo-500 hover:text-indigo-700 hover:border-indigo-700"
             >
               <span className="font-medium ">Jatka Google-tilillä</span>
               <img src="/google.svg" className="w-5 h-5" />
-            </Button>
+            </Button> */}
           </form>
         </CardContent>
       </Card>

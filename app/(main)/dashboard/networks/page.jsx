@@ -16,18 +16,15 @@ export default function Page() {
    const user = useUser();
    const [searchTerm, setSearchTerm] = useState("");
 
-   // Get networks where current user is a member
-   console.log(user)
-
    const networksWhereCurrentUserIsMember = user.members
-      .filter(membership => membership.networks) // Filter out any undefined networks
-      .map(membership => membership.networks); // Get the network objects
+      .filter(membership => membership.networks)
+      .map(membership => membership.networks);
 
    const handleSearch = (value) => {
       setSearchTerm(value);
    };
 
-   const filteredNetworks = networksWhereCurrentUserIsMember.filter(network => {
+   const filteredNetworks = networksWhereCurrentUserIsMember?.filter(network => {
       if (!searchTerm) return true;
 
       const searchLower = searchTerm.toLowerCase();
@@ -96,7 +93,7 @@ export default function Page() {
                               </div>
                               <div className="flex-1 truncate">
                                  <h3 className="font-medium text-gray-900 truncate">{network.name}</h3>
-                                 <p className="text-sm text-gray-500">{user.networks.find((n) => n.$id === network.$id).members.length} members</p>
+                                 <p className="text-sm text-gray-500">{user.networks.find((n) => n.$id === network.$id).members.length} {t("members")}</p>
                               </div>
                            </div>
                            <p className="mt-4 text-sm text-gray-500 line-clamp-3">{network.description}</p>

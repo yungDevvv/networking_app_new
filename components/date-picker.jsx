@@ -35,7 +35,14 @@ const DatePicker = React.forwardRef(({ ...field }, ref) => {
                {/* {field.value ? format(new Date(Date.parse(field.value)), "PPP", { locale: fi }) : <span>Valitse päivämäärä</span>} */}
             </Button>
          </PopoverTrigger>
-         <PopoverContent className="w-auto p-0" >
+         <PopoverContent 
+            className="w-auto p-0" 
+            style={{ 
+               zIndex: 9999,
+               position: 'relative',
+               pointerEvents: 'auto'
+            }}
+         >
             <Calendar
                mode="single"
                selected={field.value}

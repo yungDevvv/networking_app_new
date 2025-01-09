@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { listDocuments } from "@/lib/appwrite/server/appwrite";
 
+
 const fetcher = async ([db_id, collection_id, query]) => {
     try {
         const response = await listDocuments(db_id, collection_id, query);

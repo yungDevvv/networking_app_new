@@ -149,7 +149,7 @@ const CreateMeetingModal = () => {
     };
 
     useEffect(() => {
-        if (data.edit) {
+        if (data?.edit) {
             reset({
                 title: data.meet.title || '',
                 description: data.meet.description || '',
@@ -167,7 +167,7 @@ const CreateMeetingModal = () => {
 
     return (
         <Dialog open={isModalOpen} onOpenChange={onClose}>
-            <DialogContent className="min-h-[450px] flex flex-col">
+            <DialogContent className="min-h-[450px] flex flex-col" style={{ zIndex: 50 }}>
                 <DialogHeader>
                     <DialogTitle>
                         {data?.edit ? t("edit_meeting") : t("create_meeting")}
@@ -210,7 +210,7 @@ const CreateMeetingModal = () => {
                                 )}
                             />
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4 max-xs:grid-cols-1">
                                 <FormField
                                     control={form.control}
                                     name="date"

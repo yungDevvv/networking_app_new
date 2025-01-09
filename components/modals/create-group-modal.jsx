@@ -12,9 +12,10 @@ import { useTranslations } from "next-intl"
 import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useModal } from "@/hooks/use-modal"
-import { createDocument } from "@/lib/appwrite/server/appwrite"
-import { useUser } from "@/context/user-context"
+import { createDocument, updateDocument } from "@/lib/appwrite/server/appwrite"
+import { useUpdateUser, useUser } from "@/context/user-context"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
     name: z.string().min(2, {
@@ -32,7 +33,7 @@ export function CreateGroupModal() {
     const { type, isOpen, onClose, data } = useModal();
     const isModalOpen = isOpen && type === "create-group-modal";
     const router = useRouter();
-
+    const { toast } = useToast();
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -41,51 +42,67 @@ export function CreateGroupModal() {
         },
     })
 
+    const updateUser = useUpdateUser();
+
     async function onSubmit(values) {
         try {
             setIsLoading(true);
 
-            const group = await createDocument("main_db", "groups", {
-                body: {
-                    profiles: user.$id,
+            if (data.edit) {
+                const group = await updateDocument("main_db", "groups", data.group.$id, {
                     name: values.name,
                     description: values.description,
-                }
-            })
-
-            if (group) {
-
-                await createDocument("main_db", "group_members", {
+                })
+            } else {
+                const group = await createDocument("main_db", "groups", {
                     body: {
                         profiles: user.$id,
-                        groups: group.$id,
-                        role: "admin",
+                        name: values.name,
+                        description: values.description,
                     }
                 })
+
+                if (group) {
+
+                    await createDocument("main_db", "group_members", {
+                        body: {
+                            profiles: user.$id,
+                            groups: group.$id,
+                            role: "admin",
+                        }
+                    })
+                }
             }
 
-            data.mutate()
-            router.refresh();
-            onClose();
+            await updateUser();
             form.reset();
+
+            toast({
+                variant: "success",
+                title: "Onnistui",
+                description: "Ryhmä on luotu onnistuneesti.",
+            })
         } catch (error) {
             console.error("Error creating network:", error)
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
+            onClose();
         }
+
     }
 
-
     useEffect(() => {
+
         if (data?.edit) {
             form.reset({
-                name: ""
+                name: data.group.name || "",
+                description: data.group.description || ""
             })
         }
     }, [data])
     return (
         <Dialog open={isModalOpen} onOpenChange={onClose}>
-            <DialogContent className="">
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{t("create_group")}</DialogTitle>
                 </DialogHeader>
@@ -114,7 +131,6 @@ export function CreateGroupModal() {
                                         <Textarea
                                             {...field}
                                             className="h-32 !mt-1"
-                                            placeholder={"group_description_placeholder"}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -123,10 +139,10 @@ export function CreateGroupModal() {
                         />
                         <div className="flex justify-end">
                             <Button type="submit" disabled={isLoading}>
+                                {data.edit ? t("save") : t("create")}
                                 {isLoading ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 ) : null}
-                                {t("create")}
                             </Button>
                         </div>
                     </form>

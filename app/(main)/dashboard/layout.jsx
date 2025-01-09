@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }) {
          <NextIntlClientProvider messages={messages}>
             <SidebarProvider defaultOpen={defaultOpen}>
                <AppSidebar />
-               <main className="w-full min-h-screen px-5 max-md:px-2">
+               <main className="w-full min-h-screen px-5 max-md:px-3">
                   <Header />
                   {children}
                </main>

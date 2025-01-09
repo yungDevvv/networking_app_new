@@ -36,7 +36,7 @@ const companiesList = [
    },
    {
       name: "Boost",
-      image: "data:image/webp;base64,UklGRlYEAABXRUJQVlA4IEoEAAAwFgCdASpAAEAAPi0Ki0WhkNDN+BgCxLYAVyrG/wD8QOlKmnyv8c/ZFp78a+4v465BZ7zfc/ue7QH2ge4B+g/9E/jX4s9yjzAfxb+v/8f/Pdhv0AP6x/pOsL9ADyy/Ya/Yj9m/Z2/+d2FkQI+fOn/1Pjf+lPRn6wDUT5iPLRh25mk4HT7YqJYS78I0BXbYoeIRvJMpf1lTQGu4GnaexPb5BT2gceoWGety9FSWZ7wc6fFKc2y/PQVA7gAA/v6lh7i/F5PO1oes/LI1CdkYdQqf21wvXpAK77//bd+TtTWBn6viVKn1FqRCWTbQHJejUaudOVtVFeEpKtDp2nf/wZLd1qkHLKTBmYMBVNXm7TMvpx6nmIqhFGIy2D3fea5Yb9guHT/VkL9w3MK2AFGNJ5OWvmC6SJ8P7abxt7ajFgAwKK0zCCltepHsUbi3V09/wLRbJkwCcNUZ2z83Jo7SxDxuuL/xdvi0yhms6S6IX251qJwJFDvcNp/uoPLmimV7vVyi4Yj+XalpqEwgT1cGOQbKGL+TgdO1E4sP/oXFerJ0oSF/nWryH1yjYhJrmcV0rCaTJWPBLN//8pbeC9zSMnLuCnAFx0PgwpcNtYoRBdLXVbJWBtI/FUREh6Oe8rTf4kgq/7coBspUD253BY4gjYdx70l3Zhhta9vvoLRN0f0e9PSLlXTGo0cqX+HTmCeCW59+Uf6d0E+3APfgNVch9Z0BgUj2mLxXg/hYCJTmoTv2qxxND3BIUl/h9xXLXzXss5ZeSBIShGRbpqv1sgxf/cne1GwryDlHUavMdVT1iA6Yn9OjwZCOK62Zc0pRtmZvdjTO6bJ+aIkSLS5+ZmTUw/9mkAKYG0+mYkcBUT3ri6V/W9bPtcdCzgq32RnNPLtJnbwLeaxO3DaqGNa87uppx2aYxjiehcN3mqy1rwI4vh0QN+QlHTk/i7MsmEfTWaBHUuTQJfMemEBlL+TWFBU4CiYgaie6yY8a9nH8M+eXlZ4Qto0J/5+DU6fgt8xPrNgBD9UVxOHlSATvGC3iKDnMtXPncP+UV0Ki1xN2XQ/x0kPDWyEI9L8s5YL9XoaGKV/8NvxOPbamDWBmBzi0yMOV+pvML5t/xpqNJ2dYLreA+sIC7qpDStftwlYMCsxJ3DzZ8GfMIuOMoc2zdVMNmmMAB+M0ds+eiBPPiR3URw5jq+FvRFJ+jVLKapJ1pCPbk/Z8d7G5J/HGUHiRqiUmvfD5MenkbqBwRQYqqBWU80M+UazxeR526byAcb/uVpCAY4nI4iyonGrv2Wva4PUVESmoCblvCrXzSQmrruQ167T26QQuOA/kF/+/dmw4fe96fy1qV2f4HmpA8wkc7WP/Lw65d2Ehqkn/70YCsA/gGlnXkJBEasVxdK/i38nC1FMULF/Lmd8Nc4lFb1LvTVHWWf35VirSVtbH00A1AmVu9zQEQHO/unAkkO/dKtfAAAA="
+      image: "data:image/webp;base64,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"
    },
    {
       name: "Suositus.fi",
@@ -56,8 +56,11 @@ import MemberCardWeekSearch from './week-search/member-card-week-search';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { useModal } from '@/hooks/use-modal';
+import { createDocument } from '@/lib/appwrite/server/appwrite';
+import { useToast } from '@/hooks/use-toast';
+import { storage } from '@/lib/appwrite/client/appwrite';
 
-const MemberCard = ({ member, memberProfile, meets }) => {
+const MemberCard = ({ member, memberProfile, meets, currentUser }) => {
    const [dropdownOpen, setDropdownOpen] = useState(false);
 
    const [contentOpen, setContentOpen] = useState(1)
@@ -65,17 +68,37 @@ const MemberCard = ({ member, memberProfile, meets }) => {
    const router = useRouter();
    const t = useTranslations()
 
+   const { toast } = useToast()
    const { onOpen } = useModal();
    const businessNetworks = member.profiles.business_networks
       ? businessNetworksType.filter(el => member.profiles.business_networks.find(bns => bns === el.name))
       : [];
 
+   const requestReviewHandler = async () => {
+      try {
+         await createDocument("main_db", "notifications", {
+            body: {
+               profiles: memberProfile.$id,
+               type: "review",
+               sender_id: currentUser.$id,
+               entity_id: currentUser.google_review_link,
+            }
+         });
+         toast({
+            variant: "success",
+            title: "Arvostelu",
+            description: "Arvostelu pyyntö on lähetetty onnistuneesti."
+         })
+      } catch (error) {
+         console.error(error);
+      }
+   }
    return (
-      <div className="group bg-white rounded-xl p-5 border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all space-y-3">
+      <div className="group min-w-[380px] max-xs:min-w-[325px] group bg-white rounded-xl p-5 max-xs:p-3 border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all space-y-3">
          {/* Header section with avatar and basic info */}
          <div className='flex items-start gap-5'>
             <Avatar className="h-20 w-20 rounded-xl ring-2 ring-gray-100">
-               <AvatarImage src={member.profiles.avatar} className="object-cover" />
+               <AvatarImage src={storage.getFilePreview("avatars", member.profiles.avatar)} alt={member.profiles.name} className="object-cover" />
                <AvatarFallback className="bg-indigo-50">
                   <img src={'/blank_profile.png'} alt="avatar" className="h-full w-full object-cover" />
                </AvatarFallback>
@@ -121,23 +144,24 @@ const MemberCard = ({ member, memberProfile, meets }) => {
                         }}>
                            {t("create_meet")}
                         </DropdownMenuItem>
+                        {currentUser.google_review_link &&
+                           <DropdownMenuItem className="cursor-pointer" onClick={() => {
+                              onOpen("confirm-modal", {
+                                 type: "mail",
+                                 title: t("send_review_request"),
+                                 description: t("confirm_send_review"),
+                                 callback: () => requestReviewHandler()
+                              })
+                              setDropdownOpen(false)
+                           }}>
+                              {t("send_review_request")}
+                           </DropdownMenuItem>
+                        }
                      </DropdownMenuContent>
                   </DropdownMenu>
                </div>
                {member.profiles.job_title && (
                   <p className='text-sm font-medium text-indigo-600 mb-0.5'>{member.profiles.job_title}</p>
-               )}
-               {member.profiles.company && (
-                  <div className="flex items-center gap-2">
-                     <p className='text-sm text-gray-600'>{member.profiles.company}</p>
-                     {member.profiles.company_logo && (
-                        <img
-                           src={member.profiles.company_logo}
-                           alt={member.profiles.company}
-                           className="h-5 w-5 object-contain"
-                        />
-                     )}
-                  </div>
                )}
             </div>
          </div>
@@ -147,6 +171,15 @@ const MemberCard = ({ member, memberProfile, meets }) => {
                businessNetworks.map((el, i) => <img key={i} className='w-[25px] h-[25px]' src={el.image} alt="network_logo" title={el.name} />)
             }
          </div>
+         {/* <div>
+            {member.profiles.companies && (
+               <SVGComponent
+                  url="https://appwrite.superman.fi/v1/storage/buckets/logos/files/677ea4fb00213c72e5da/view?project=networking-prod"
+                  className="w-20 inline-block"
+                  alt="Company Logo"
+               />
+            )}
+         </div> */}
          {/* Tab navigation */}
          <div className="flex border-b border-gray-200">
             <button
@@ -284,44 +317,54 @@ const MemberCard = ({ member, memberProfile, meets }) => {
             )}
             {contentOpen === 4 && (
                <div className="space-y-4">
-                  {meets && meets.map((meet) => (
-                     <div
-                        key={meet.$id}
-                        className="group bg-white rounded-xl p-4 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
-                     >
-                        <div className="flex items-start gap-4">
-                           <div className="shrink-0">
-                              <div className="bg-indigo-50 rounded-lg p-2">
-                                 <Calendar className="h-4 w-4 text-indigo-600" />
-                              </div>
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                 <h2 className="text-sm font-semibold text-gray-900 flex-1">
-                                    {meet.title}
-                                 </h2>
-                                 <span className="text-xs self-start font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
-                                    {format(new Date(meet.date), 'dd.MM.yyyy')}
-                                 </span>
-                              </div>
-                              <div className="flex items-center gap-2 mb-1.5 text-sm text-gray-500">
-                                 <div className="flex items-center gap-1">
-                                    <MapPin className="h-4 w-4" />
-                                    <span className='text-black'>{meet.location}</span>
-                                 </div>
-                                 <div className="h-1 w-1 rounded-full bg-gray-300" />
-                                 <div className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    <span className='text-black'>{meet.start_time} - {meet.end_time}</span>
+                  {meets.length !== 0
+                     ? meets.map((meet) => (
+                        <div
+                           key={meet.$id}
+                           className="group bg-white rounded-xl p-4 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
+                        >
+                           <div className="flex items-start gap-4">
+                              <div className="shrink-0">
+                                 <div className="bg-indigo-50 rounded-lg p-2">
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
                                  </div>
                               </div>
-                              <p className="text-sm text-gray-600 leading-thin">
-                                 {meet.description}
-                              </p>
+                              <div className="min-w-0 flex-1">
+                                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <h2 className="text-sm font-semibold text-gray-900 flex-1">
+                                       {meet.title}
+                                    </h2>
+                                    <span className="text-xs self-start font-medium text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                                       {format(new Date(meet.date), 'dd.MM.yyyy')}
+                                    </span>
+                                 </div>
+                                 <div className="flex items-center gap-2 mb-1.5 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                       <MapPin className="h-4 w-4" />
+                                       <span className='text-black'>{meet.location}</span>
+                                    </div>
+                                    <div className="h-1 w-1 rounded-full bg-gray-300" />
+                                    <div className="flex items-center gap-1">
+                                       <Clock className="h-4 w-4" />
+                                       <span className='text-black'>{meet.start_time} - {meet.end_time}</span>
+                                    </div>
+                                 </div>
+                                 <p className="text-sm text-gray-600 leading-thin">
+                                    {meet.description}
+                                 </p>
+                              </div>
                            </div>
                         </div>
-                     </div>
-                  ))}
+                     ))
+                     : (
+                        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                           <div className="bg-white rounded-full p-3 mb-4 border border-gray-200 shadow-sm">
+                              <Search className="h-5 w-5 text-indigo-500" />
+                           </div>
+                           <h3 className="text-sm font-medium text-gray-900 mb-1">{t("no_meetings")}</h3>
+                        </div>
+                     )
+                  }
                </div>
             )}
          </div>

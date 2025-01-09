@@ -1,17 +1,19 @@
 "use client";
 
 import ContactCard from "@/components/contact-card";
-import { listDocuments } from "@/lib/appwrite/server/appwrite";
 import ContactPageSearch from "./search";
-import { useDocuments } from "@/hooks/use-documents";
+
 import { useUser } from "@/context/user-context";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { getVisibleProfiles } from "@/lib/appwrite/server/appwrite";
 
 export default function Page() {
    const user = useUser();
-   const { documents, isLoading } = useDocuments("main_db", "profiles");
+
+   const [isLoading, setIsLoading] = useState(false);
+   const [documents, setDocuments] = useState([]);
    const [searchTerm, setSearchTerm] = useState("");
    const t = useTranslations();
 
@@ -40,6 +42,18 @@ export default function Page() {
       );
    });
 
+   useEffect(() => {
+      setIsLoading(true);
+      (async () => {
+         const visibleProfiles = await getVisibleProfiles();
+
+         if (visibleProfiles) {
+            setDocuments(visibleProfiles);
+            setIsLoading(false);
+         }
+      })()
+
+   }, []);
    return (
       <div className="w-full">
          <div className="flex justify-between max-md:flex-wrap max-md:space-y-3">
@@ -62,12 +76,13 @@ export default function Page() {
                   filteredUsers.map((member, i) => (
                      <ContactCard
                         key={member.$id}
+                        currentUser={user}
                         member={member}
                         meets={member.meets?.filter(meet => meet.sender_id === user.$id) || []}
                      />
                   ))
                }
-               {documents && documents.length > 0 && (
+               {/* {documents && documents.length > 0 && (
                   <>
                      <ContactCard
                         key={documents[0].$id + 2}
@@ -85,7 +100,7 @@ export default function Page() {
                         meets={documents[0].meets?.filter(meet => meet.sender_id === user.$id) || []}
                      />
                   </>
-               )}
+               )} */}
 
             </div>
          </div>

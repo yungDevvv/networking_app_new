@@ -1,103 +1,164 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useState, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import UserDuplicateWeekSearch from "@/components/week-search/user-duplicate-week-search"
 import UserWeekSearchItem from "@/components/week-search/user-week-search-item"
-import { Loader2, Search, Send } from "lucide-react"
+import { Loader2, Search, Send, Tag } from "lucide-react"
 import { createDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite"
 import { useDocuments } from "@/hooks/use-documents"
+import { businessCategories } from "@/types/business-categories"
+import { useTranslations } from "next-intl"
+import { cn } from "@/lib/utils"
 
 export default function My() {
+   const t = useTranslations();
+   const router = useRouter();
+
+   const [activeCaterogies, setActiveCategories] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
-   const [confirmStatus, setConfirmStatus] = useState(false);
-   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
    const [duplicatedWeekSearch, setDuplicatedWeekSearch] = useState(null);
    const [text, setText] = useState("");
-   const [weekSearches, setWeekSearches] = useState([]);
-   const router = useRouter()
 
-   const { documents: week_searches, isLoading: contentIsLoading, isError, mutate } = useDocuments("main_db", "week_searches");
+   const { documents: week_searches, isLoading: contentIsLoading, mutate } = useDocuments(
+      "main_db",
+      "week_searches",
+      useMemo(() => [], [])
+   );
 
-   const handleCreateWeekSearch = async () => {
-      const user = await getLoggedInUser();
-
-      setIsLoading(true);
+   const handleDuplicateWeekSearch = async (text, prevWeekSearch) => {
       try {
+         const user = await getLoggedInUser();
+
          await createDocument("main_db", "week_searches", {
             body: {
                text,
+               categories: prevWeekSearch.categories || [],
+               profiles: user.$id
+            }
+         });
+         mutate();
+         router.refresh();
+      } catch (error) {
+         console.log(error);
+      }
+   };
+
+   const handleCreateWeekSearch = useCallback(async () => {
+      if (!text.trim()) return;
+
+      setIsLoading(true);
+
+      try {
+         const user = await getLoggedInUser();
+         await createDocument("main_db", "week_searches", {
+            body: {
+               text,
+               categories: activeCaterogies,
                profiles: user.$id
             }
          });
 
-         mutate();
-         router.refresh();
-      } catch (error) {
-         console.error(error);
-      } finally {
          setText("");
+         setActiveCategories([]);
+         mutate();
+      } catch (error) {
+         console.log(error);
+      } finally {
          setIsLoading(false);
       }
-   };
+   }, [text, activeCaterogies, mutate]);
 
-
+   const toggleCategory = useCallback((category) => {
+      setActiveCategories((prev) =>
+         prev.includes(category)
+            ? prev.filter((c) => c !== category)
+            : [...prev, category]
+      );
+   }, []);
 
    return (
-      <div className="max-w-[850px] mx-auto space-y-6 py-5">
-         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-            <div className="space-y-2">
-               <h2 className="text-lg font-semibold text-gray-900">Create Weekly Search Request</h2>
-               <p className="text-sm text-gray-500">
-                  Define who or what you're looking for. Your request will be visible to other users for a week.
-               </p>
-            </div>
-            <div className="mt-4 space-y-4">
-               <Textarea
-                  onChange={(e) => setText(e.target.value)}
-                  value={text}
-                  placeholder="Example: Looking for marketing decision-makers at company XXX Oy."
-                  className="min-h-[120px] resize-none"
-               />
-               <Button
-                  className="w-full sm:w-auto"
-                  disabled={!text.trim()}
-                  onClick={() => handleCreateWeekSearch()}
-               >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send
-               </Button>
-            </div>
-         </div>
-
-         {duplicatedWeekSearch && <UserDuplicateWeekSearch weekSearch={duplicatedWeekSearch} />}
-
+      <div className="max-w-[660px] mx-auto pb-10">
          <div className="space-y-4">
-            {contentIsLoading && <div className="w-full flex justify-center"><Loader2 size={30} className="mr-2 animate-spin text-indigo-500" /></div>}
-            {!contentIsLoading && week_searches && week_searches.length > 0 && (
-               week_searches.map(weekSearch => (
-                  <UserWeekSearchItem
-                     key={weekSearch.$id}
-                     weekSearch={weekSearch}
-                     setDuplicatedWeekSearch={setDuplicatedWeekSearch}
-                     router={router}
-                     mutate={mutate}
+            <div className="py-5">
+               <h1 className="text-xl font-semibold">{t("weekly_searches")}</h1>
+               <p className="text-sm text-gray-500 mt-1">
+                  {t("asd101")}
+               </p>
+
+               <div className="mt-4 space-y-4">
+                  <Textarea
+                     onChange={(e) => setText(e.target.value)}
+                     value={text}
+                     placeholder={t("asd102")}
+                     className="min-h-[120px] resize-none"
                   />
-               ))
-            )}
-            {!contentIsLoading && week_searches && week_searches.length === 0 && (
-               <div className="bg-gray-50 rounded-xl border border-dashed border-gray-300 p-8 text-center">
-                  <div className="mx-auto w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                     <Search className="w-6 h-6 text-gray-400" />
+                  <div className="space-y-2">
+                     {businessCategories.map((category) => (
+                        <div
+                           key={category}
+                           onClick={() => toggleCategory(category)}
+                           className={cn(
+                              "inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium mr-2 cursor-pointer",
+                              activeCaterogies.includes(category)
+                                 ? "bg-indigo-50 text-indigo-700"
+                                 : "bg-gray-50 text-gray-700"
+                           )}
+                        >
+                           <Tag className="h-3.5 w-3.5" />
+                           <span>{t(category)}</span>
+                        </div>
+                     ))}
                   </div>
-                  <h3 className="text-sm font-medium text-gray-900 mb-1">No search requests yet</h3>
-                  <p className="text-sm text-gray-500">Create your first weekly search request above.</p>
+                  <div className="flex justify-end">
+                     <Button
+                        disabled={!text.trim()}
+                        onClick={handleCreateWeekSearch}
+                     >
+                        {isLoading ? (
+                           <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                           <>
+                              <Send className="h-4 w-4 mr-2" />
+                              {t("send")}
+                           </>
+                        )}
+                     </Button>
+                  </div>
+               </div>
+
+            </div>
+
+            {duplicatedWeekSearch && (
+               <UserDuplicateWeekSearch weekSearch={duplicatedWeekSearch} t={t} setDuplicatedWeekSearch={setDuplicatedWeekSearch} handleDuplicateWeekSearch={handleDuplicateWeekSearch} />
+            )}
+
+            {contentIsLoading ? (
+               <div className="flex justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+               </div>
+            ) : week_searches?.length > 0 ? (
+               <div className="space-y-4">
+                  {week_searches.map((weekSearch) => (
+                     <UserWeekSearchItem
+                        key={weekSearch.$id}
+                        weekSearch={weekSearch}
+                        setDuplicatedWeekSearch={setDuplicatedWeekSearch}
+                        mutate={mutate}
+                        router={router}
+                     />
+                  ))}
+               </div>
+            ) : (
+               <div className="text-center py-8">
+                  <Search className="h-8 w-8 mx-auto text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">{t("no_week_searches")}</h3>
+                  <p className="text-sm text-gray-500">{t("asd22")}</p>
                </div>
             )}
-           
          </div>
       </div>
-   )
+   );
 }

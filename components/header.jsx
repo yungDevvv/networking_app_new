@@ -10,14 +10,12 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, LogOut, Server, Settings, UserRound } from "lucide-react"
-import { createAdminClient, createSessionClient, getLoggedInUser, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite"
+import { createSessionClient, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite"
 import { Button } from "./ui/button"
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import Link from "next/link"
 import LanguageSwitcher from "./language-switcher"
-import Test from "./server-side-modal-opener-button"
-import ServerSideModalOpenerButton from "./server-side-modal-opener-button"
 import { storage } from "@/lib/appwrite/client/appwrite"
 import { getTranslations } from "next-intl/server"
 
