@@ -18,7 +18,7 @@ import {
    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { createDocument, deleteDocument, getLoggedInUser, updateDocument } from "@/lib/appwrite/server/appwrite";
+import { createDocument, deleteDocument, getLoggedInUserProfile, updateDocument } from "@/lib/appwrite/server/appwrite";
 import { Input } from "../ui/input";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from 'next-intl';
@@ -52,7 +52,7 @@ const UserWeekSearchItem = ({ weekSearch, setDuplicatedWeekSearch, mutate, route
 
       setIsLoading(true);
 
-      const user = await getLoggedInUser();
+      const user = await getLoggedInUserProfile();
 
       try {
          const res = await createDocument("main_db", "week_search_comments", {
@@ -66,7 +66,7 @@ const UserWeekSearchItem = ({ weekSearch, setDuplicatedWeekSearch, mutate, route
          mutate();
          router.refresh();
       } catch (error) {
-         console.error(error);
+         console.log(error);
       } finally {
          setIsLoading(false);
          setCommentText("");
@@ -84,7 +84,7 @@ const UserWeekSearchItem = ({ weekSearch, setDuplicatedWeekSearch, mutate, route
             description: "Viikonhaku on poistettu onnistuneesti."
          })
       } catch (error) {
-         console.error(error);
+         console.log(error);
          toast({
             variant: "destructive",
             description: "Tuntematon virhe."
@@ -107,7 +107,7 @@ const UserWeekSearchItem = ({ weekSearch, setDuplicatedWeekSearch, mutate, route
             description: "Viikonhaku on päivitetty onnistuneesti."
          })
       } catch (error) {
-         console.error(error);
+         console.log(error);
          toast({
             variant: "internalError",
             description: "Tuntematon virhe."

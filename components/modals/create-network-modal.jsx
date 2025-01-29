@@ -70,7 +70,7 @@ export function CreateNetworkModal() {
                 form.reset()
                 router.refresh();
             } catch (error) {
-                console.error("Error creating network:", error)
+                console.log("Error creating network:", error)
                 toast({
                     variant: "internalError",
                     description: "Tuntematon virhe verkoston luonnissa."
@@ -114,7 +114,7 @@ export function CreateNetworkModal() {
                 form.reset()
                 router.refresh();
             } catch (error) {
-                console.error("Error creating network:", error)
+                console.log("Error creating network:", error)
             } finally {
                 setIsLoading(false)
             }

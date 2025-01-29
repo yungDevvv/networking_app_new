@@ -14,6 +14,7 @@ import {
    SelectValue,
 } from "@/components/ui/select"
 import { businessCategories } from '@/types/business-categories';
+import { maakunnat } from '@/types/finnish-areas';
 
 const WeekSearchFilters = ({ onSearch, activeFilters, setActiveFilters }) => {
    const t = useTranslations();
@@ -103,9 +104,7 @@ const WeekSearchFilters = ({ onSearch, activeFilters, setActiveFilters }) => {
                      </SelectTrigger>
                      <SelectContent>
                         <SelectItem value="all">{t("all_locations")}</SelectItem>
-                        <SelectItem value="helsinki">{t("helsinki")}</SelectItem>
-                        <SelectItem value="espoo">{t("espoo")}</SelectItem>
-                        <SelectItem value="tampere">{t("tampere")}</SelectItem>
+                        {maakunnat.map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}
                      </SelectContent>
                   </Select>
                </div>

@@ -1,5 +1,5 @@
 import MemberCard from "@/components/member-card";
-import { getDocument, getLoggedInUser, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite";
+import { getDocument, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite";
 import { getTranslations } from 'next-intl/server';
 import Actions from "./actions";
 

@@ -42,7 +42,7 @@ export default function InviteModal() {
             })
             onClose();
         } catch (error) {
-            console.error(error);
+            console.log(error);
 
             toast({
                 variant: "destructive",

@@ -1,0 +1,36 @@
+{
+    "projectId": "networking-prod",
+    "endpoint": "https://appwrite.superman.fi/v1",
+    "collections": [
+        {
+            "id": "profiles",
+            "name": "Profiles",
+            "indexes": [
+                {
+                    "key": "basic_info",
+                    "type": "key",
+                    "attributes": [
+                        "name",
+                        "email",
+                        "location",
+                        "job_title"
+                    ]
+                },
+                {
+                    "key": "company_index",
+                    "type": "key",
+                    "attributes": [
+                        "company"
+                    ]
+                },
+                {
+                    "key": "visibility_index",
+                    "type": "key",
+                    "attributes": [
+                        "profile_visibility"
+                    ]
+                }
+            ]
+        }
+    ]
+}

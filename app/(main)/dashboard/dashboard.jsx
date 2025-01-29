@@ -29,7 +29,7 @@ export default function Dashboard({ weekSearches }) {
                             {user?.name && <h2 className="text-2xl max-md:text-lg font-bold text-gray-900">{user.name}</h2>}
                             {user?.job_title && <p className="text-gray-400 max-md:text-sm font-medium">{user.job_title}</p>}
                             {user?.companies?.name && <p className="text-indigo-500 max-md:text-sm font-medium">{user.companies.name}</p>}
-                            {user?.address && <p className="text-gray-600 max-md:text-sm">{user.address}</p>}
+                            {user?.location && <p className="text-gray-600 max-md:text-sm">{user.location}</p>}
                         </div>
                     </div>
 

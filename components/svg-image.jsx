@@ -36,7 +36,7 @@ const SVGComponent = ({ url, className, alt = "image" }) => {
                     setSvgContent(null);
                 }
             } catch (error) {
-                console.error('Virhe ladattaessa kuvaa:', error);
+                console.log('Virhe ladattaessa kuvaa:', error);
                 setError(error.message);
                 setSvgContent(null);
             } finally {

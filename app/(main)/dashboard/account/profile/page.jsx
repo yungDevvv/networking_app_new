@@ -5,6 +5,14 @@ import { useTranslations } from 'next-intl';
 import { businessNetworksType } from '@/types/business-networks-type';
 
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+
+import {
     Command,
     CommandEmpty,
     CommandGroup,
@@ -51,14 +59,13 @@ import { useDocuments } from '@/hooks/use-documents';
 import { useModal } from '@/hooks/use-modal';
 import SVGComponent from '@/components/svg-image';
 import { useToast } from '@/hooks/use-toast';
+import { maakunnat } from '@/types/finnish-areas';
 
 const formSchema = z.object({
     first_name: z.string()
         .min(1, { message: "First name is required" }),
     last_name: z.string()
         .min(1, { message: "Last name is required" }),
-    address: z.string()
-        .optional(),
     email: z.string()
         .email(),
     company: z.string()
@@ -101,7 +108,6 @@ export default function Page({ }) {
         defaultValues: {
             first_name: "",
             last_name: "",
-            address: "",
             email: "",
             job_title: "",
             location: "",
@@ -141,7 +147,7 @@ export default function Page({ }) {
                 description: "Tiedot on tallennettu onnistuneesti.",
             })
         } catch (error) {
-            console.error("Error updating profile:", error);
+            console.log("Error updating profile:", error);
             toast({
                 title: "Error",
                 description: "Tiedot ei ole tallennettu.",
@@ -158,12 +164,9 @@ export default function Page({ }) {
             const firstName = tempName[0];
             const lastName = tempName[1] || "";
 
-
-
             reset({
                 first_name: firstName || "",
                 last_name: lastName || "",
-                address: user.address || "",
                 email: user.email || "",
                 job_title: user.job_title || "",
                 location: user.location || "",
@@ -183,7 +186,7 @@ export default function Page({ }) {
 
     return (
         <div className='w-full max-w-5xl pl-10 max-lg:pl-5 h-full pb-10 max-sm:pl-0'>
-            <h1 className='text-2xl font-semibold mb-10 max-md:text-xl max-md:mb-5'>{t("edit_profile")}</h1>
+            <h1 className='font-semibold mb-10 text-xl max-md:mb-5'>{t("edit_profile")}</h1>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-y-3 gap-x-6">
@@ -352,12 +355,22 @@ export default function Page({ }) {
 
                         <FormField
                             control={form.control}
-                            name="address"
+                            name="location"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>{t("location")}</FormLabel>
                                     <FormControl>
-                                        <Input {...field} placeholder="Helsinki" />
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={user?.location || t("select_location")} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {maakunnat.map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

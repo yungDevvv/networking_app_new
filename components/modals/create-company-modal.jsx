@@ -93,7 +93,7 @@ export function CreateCompanyModal() {
             form.reset();
             setSelectedLogo(null);
         } catch (error) {
-            console.error(error);
+            console.log(error);
             // toast.error(isEditMode ? t("company_update_error") : t("company_create_error"));
         } finally {
             setIsLoading(false);

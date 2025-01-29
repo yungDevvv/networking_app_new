@@ -25,11 +25,16 @@ import {
 import {
    BookUser,
    CalendarSearch,
+   Coffee,
+   Crown,
+   Eye,
    GlobeLock,
    Handshake,
    Home,
+   Mail,
    Network,
-   Plus
+   Plus,
+   Star
 } from "lucide-react"
 
 import { usePathname } from "next/navigation";
@@ -57,6 +62,15 @@ export function AppSidebar() {
          ),
       },
       {
+         title: t("navbar_favorites"),
+         url: "/dashboard/favorites",
+         icon: (isActive) => (
+            <Star
+               className={cn("mr-1", isActive && "text-indigo-500")}
+            />
+         ),
+      },
+      {
          title: t("navbar_mynetworks"),
          url: "/dashboard/networks",
          icon: (isActive) => (
@@ -73,13 +87,16 @@ export function AppSidebar() {
                className={cn("mr-1", isActive && "text-indigo-500")}
             />
          ),
-         sub_menu: true
+         sub_menu: {
+            premium: false,
+            url: "/dashboard/week-searches/new",
+         }
       },
       {
          title: t("meetings"),
          url: "/dashboard/meetings",
          icon: (isActive) => (
-            <Handshake
+            <Coffee
                className={cn("mr-1", isActive && "text-indigo-500")}
             />
          )
@@ -92,6 +109,19 @@ export function AppSidebar() {
                className={cn("mr-1", isActive && "text-indigo-500")}
             />
          )
+      },
+      {
+         title: t("navbar_offers"),
+         url: "/dashboard/offers",
+         icon: (isActive) => (
+            <Handshake
+               className={cn("mr-1", isActive && "text-indigo-500")}
+            />
+         ),
+         sub_menu: {
+            premium: true,
+            url: "/dashboard/offers/new",
+         }
       },
    ];
    return (
@@ -125,16 +155,16 @@ export function AppSidebar() {
                            const isActive = pathname === item.url;
 
                            if (item?.sub_menu) return (
-                              <Accordion type="single" collapsible key={item.title} onClick={() => setOpen(true)}>
+                              <Accordion type="single" collapsible key={item.title + isActive} onClick={() => setOpen(true)}>
                                  <AccordionItem value={item.url} className="border-none">
                                     <AccordionTrigger iconHidden={!open} className="!text-base w-full p-2 font-medium !h-10 shadow-sm shadow-indigo-50 hover:no-underline hover:bg-sidebar-accent">
                                        <div className="flex gap-2 items-center">
-                                          <CalendarSearch className={cn("mr-1 shrink-0")} />
+                                          {item.icon(isActive)}
                                           <span className={cn(
                                              "transform overflow-hidden whitespace-nowrap",
                                              open ? "w-auto opacity-100" : "w-0 opacity-0"
                                           )}>
-                                             {t("navbar_week_search")}
+                                             {item.title}
                                           </span>
                                        </div>
                                     </AccordionTrigger>
@@ -142,15 +172,33 @@ export function AppSidebar() {
                                        <SidebarMenuSub>
                                           <SidebarMenuSubItem>
                                              <SidebarMenuSubButton asChild>
-                                                <Link href={"/dashboard/week-searches/my"} className={cn(" hover:bg-indigo-50 font-medium !h-9 shadow-sm shadow-indigo-50", pathname.includes("/dashboard/week-searches/my") && "bg-indigo-50 !font-semibold")}>
-                                                   <Plus size={16} strokeWidth={2} className='text-indigo-500' />
+                                                <Link href={item?.sub_menu?.url} className={cn(
+                                                   "hover:bg-indigo-50 flex items-center justify-between font-medium !h-9 shadow-sm shadow-indigo-50",
+                                                   pathname.includes("/dashboard/week-searches/my") && "bg-indigo-50 !font-semibold",
+                                                   item.sub_menu.premium && "text-yellow-500 hover:text-yellow-500"
+                                                )}>
+                                                   <span>Lisää uusi</span>
+                                                   {item.sub_menu.premium ? <Crown className="!text-yellow-500" /> : <Plus className="!text-black/70" />}
                                                 </Link>
                                              </SidebarMenuSubButton>
+                                             {item.url === "/dashboard/offers" && (
+                                                <SidebarMenuSubButton asChild>
+                                                   <Link href={item?.url + "/contacts"} className={cn(
+                                                      "hover:bg-indigo-50 flex items-center justify-between font-medium !h-9 shadow-sm shadow-indigo-50",
+                                                      pathname.includes("/dashboard/week-searches/my") && "bg-indigo-50 !font-semibold"
+
+                                                   )}>
+                                                      <span>Yhteydenotot</span>
+                                                      <Mail className="!text-black/70" />
+                                                   </Link>
+                                                </SidebarMenuSubButton>
+                                             )}
                                           </SidebarMenuSubItem>
                                           <SidebarMenuSubItem>
                                              <SidebarMenuSubButton asChild>
-                                                <Link href={"/dashboard/week-searches"} className={cn(" hover:bg-indigo-50 font-medium !h-9 shadow-sm shadow-indigo-50", !pathname.includes("/dashboard/week-searches/my") && pathname.includes("/dashboard/week-searches") && "bg-indigo-50 !font-semibold ")}>
-                                                   {t("all")}
+                                                <Link href={item.url} className={cn(" hover:bg-indigo-50 flex items-center justify-between font-medium !h-9 shadow-sm shadow-indigo-50", !pathname.includes("/dashboard/week-searches/my") && pathname.includes("/dashboard/week-searches") && "bg-indigo-50 !font-semibold ")}>
+                                                   {t("show")}
+                                                   <Eye className="!text-black/70" />
                                                 </Link>
                                              </SidebarMenuSubButton>
                                           </SidebarMenuSubItem>

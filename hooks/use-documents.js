@@ -7,18 +7,20 @@ const fetcher = async ([db_id, collection_id, query]) => {
         const response = await listDocuments(db_id, collection_id, query);
         return response.documents;
     } catch (error) {
-        console.error("Error fetching documents:", error);
+        console.log("Error fetching documents:", error);
         throw error;
     }
 };
 
-export function useDocuments(db_id, collection_id, query) {
+export function useDocuments(db_id, collection_id, query, customFetcher) {
     const { data, error, isLoading, mutate } = useSWR(
         [db_id, collection_id, query],
-        fetcher,
+        customFetcher || fetcher,
         {
             revalidateOnFocus: false,
             refreshInterval: 0,
+            dedupingInterval: 60000, 
+            keepPreviousData: true
         }
     );
 

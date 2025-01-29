@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 const MemberCardWeekSearch = ({ member }) => {
    const t = useTranslations();
    const locale = useLocale();
-
+     
    return (
       <div className="space-y-2">
          <div className="space-y-3">

@@ -115,7 +115,7 @@ const CreateMeetingModal = () => {
                     description: "Tapaaminen on talennettu onnistuneesti."
                 })
             } catch (error) {
-                console.error("Error creating meeting:", error);
+                console.log("Error creating meeting:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -137,7 +137,7 @@ const CreateMeetingModal = () => {
                     description: "Tapaaminen on luotu onnistuneesti."
                 })
             } catch (error) {
-                console.error("Error creating meeting:", error);
+                console.log("Error creating meeting:", error);
             } finally {
                 setIsLoading(false);
             }

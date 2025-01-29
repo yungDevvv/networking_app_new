@@ -16,7 +16,7 @@ export function UserProvider({ children }) {
          setUser(userData);
          return userData;
       } catch (error) {
-         console.error("Error updating user:", error);
+         console.log("Error updating user:", error);
          return null;
       }
    };
@@ -27,7 +27,7 @@ export function UserProvider({ children }) {
             const userData = await getLoggedInUserProfile();
             setUser(userData);
          } catch (error) {
-            console.error("Error fetching user:", error);
+            console.log("Error fetching user:", error);
             setUser(null);
          } finally {
             setLoading(false);

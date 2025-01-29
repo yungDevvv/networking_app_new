@@ -29,7 +29,7 @@ const MeetItem = ({ meet, locale }) => {
                 description: "Tapaaminen poistettu onnistuneesti."
             })
         } catch (error) {
-            console.error(error);
+            console.log(error);
             toast({
                 variant: "internalError",
                 description: "Tuntematon virhe poistaessa tapaamista."

@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 import { Calendar, Clock, ContactRound, EllipsisVertical, Info, Link, Mail, MapPin, Phone, Search } from 'lucide-react';
 // import { companiesList } from '../utils/companies_data';
@@ -60,7 +60,7 @@ import { createDocument } from '@/lib/appwrite/server/appwrite';
 import { useToast } from '@/hooks/use-toast';
 import { storage } from '@/lib/appwrite/client/appwrite';
 
-const MemberCard = ({ member, memberProfile, meets, currentUser }) => {
+const MemberCard = ({ member, currentUser }) => {
    const [dropdownOpen, setDropdownOpen] = useState(false);
 
    const [contentOpen, setContentOpen] = useState(1)
@@ -78,21 +78,23 @@ const MemberCard = ({ member, memberProfile, meets, currentUser }) => {
       try {
          await createDocument("main_db", "notifications", {
             body: {
-               profiles: memberProfile.$id,
+               profiles: member.$id,
                type: "review",
                sender_id: currentUser.$id,
                entity_id: currentUser.google_review_link,
             }
          });
+
          toast({
             variant: "success",
             title: "Arvostelu",
             description: "Arvostelu pyyntö on lähetetty onnistuneesti."
          })
       } catch (error) {
-         console.error(error);
+         console.log(error);
       }
    }
+
    return (
       <div className="group min-w-[380px] max-xs:min-w-[325px] group bg-white rounded-xl p-5 max-xs:p-3 border border-gray-200 hover:border-indigo-500 hover:shadow-lg transition-all space-y-3">
          {/* Header section with avatar and basic info */}
@@ -127,7 +129,7 @@ const MemberCard = ({ member, memberProfile, meets, currentUser }) => {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer" onClick={() => {
-                           onOpen("invite-modal", { recipient: memberProfile, type: "networks" })
+                           onOpen("invite-modal", { recipient: member, type: "networks" }) // TODO: CHECK IF I PASS JUST MEMBER
                            setDropdownOpen(false)
                         }}>
                            {t("invite_network")}
@@ -313,12 +315,13 @@ const MemberCard = ({ member, memberProfile, meets, currentUser }) => {
             )}
 
             {contentOpen === 3 && (
-               <MemberCardWeekSearch member={memberProfile} />
+               <MemberCardWeekSearch member={member.profiles} />
             )}
+
             {contentOpen === 4 && (
                <div className="space-y-4">
-                  {meets.length !== 0
-                     ? meets.map((meet) => (
+                  {member.profiles.meets.length !== 0
+                     ? member.profiles.meets.map((meet) => (
                         <div
                            key={meet.$id}
                            className="group bg-white rounded-xl p-4 border border-gray-200 hover:border-indigo-200 hover:shadow-sm transition-all duration-200"

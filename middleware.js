@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getLoggedInUser } from './lib/appwrite/server/appwrite';
+import { getLoggedInUserProfile } from './lib/appwrite/server/appwrite';
 
 
 export async function middleware(request) {
   const publicPaths = [
     '/login',
     '/register',
-    '/reset-password',
+    '/forgot-password',
     '/update-password',
   ];
 
@@ -14,20 +14,20 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  try {
+  // try {
+  
+  //   const user = await getLoggedInUserProfile(); 
    
-    const user = await getLoggedInUser(); 
+  //   if (user) {
+  //     return NextResponse.next(); 
+  //   }
+  // } catch (error) {
+  //   console.log('Error fetching user:', error); 
+  // }
 
-    if (user) {
-      return NextResponse.next(); 
-    }
-  } catch (error) {
-    console.error('Error fetching user:', error); 
-  }
-
-  const url = request.nextUrl.clone();
-  url.pathname = '/login';
-  return NextResponse.redirect(url);
+  // const url = request.nextUrl.clone();
+  // url.pathname = '/login';
+  // return NextResponse.redirect(url);
 }
 
 export const config = {

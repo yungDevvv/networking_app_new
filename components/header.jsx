@@ -9,7 +9,7 @@ import {
 
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, LogOut, Server, Settings, UserRound } from "lucide-react"
+import { Award, Bell, LogOut, Server, Settings, UserRound } from "lucide-react"
 import { createSessionClient, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite"
 import { Button } from "./ui/button"
 import { redirect } from "next/navigation";
@@ -81,6 +81,12 @@ const Header = async () => {
                      <DropdownMenuItem className="cursor-pointer">
                         <Bell />
                         <span>{t("notifs")}</span>
+                     </DropdownMenuItem>
+                  </Link>
+                  <Link href="/dashboard/account/invite">
+                     <DropdownMenuItem className="cursor-pointer">
+                        <Award />
+                        <span>Kutsu käyttäjät</span>
                      </DropdownMenuItem>
                   </Link>
                   <DropdownMenuItem className="cursor-pointer">

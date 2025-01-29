@@ -24,6 +24,7 @@ export const NotificationItem = ({
 
     const onAccept = async () => {
         setIsLoading1(true);
+        console.log(notification.entity)
         try {
             if (notification.type !== "review") {
                 const res1 = await createDocument("main_db", notification.type === "networks" ? "members" : "group_members", {

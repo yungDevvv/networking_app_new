@@ -83,7 +83,7 @@ export function CreateGroupModal() {
                 description: "Ryhmä on luotu onnistuneesti.",
             })
         } catch (error) {
-            console.error("Error creating network:", error)
+            console.log("Error creating network:", error)
         } finally {
             setIsLoading(false);
             onClose();

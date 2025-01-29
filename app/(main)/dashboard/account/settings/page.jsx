@@ -38,7 +38,7 @@ import { Switch } from "@/components/ui/switch"
 import { useUser } from '@/context/user-context';
 import { useEffect, useState } from 'react';
 
-import { createRecoveryPassword, createSessionClient, updateDocument } from '@/lib/appwrite/server/appwrite';
+import { createUserRecoveryPassword, createSessionClient, updateDocument } from '@/lib/appwrite/server/appwrite';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useModal } from '@/hooks/use-modal';
@@ -99,7 +99,7 @@ export default function Page() {
             })
 
         } catch (error) {
-            console.error("Error updating profile:", error);
+            console.log("Error updating profile:", error);
             toast({
                 title: t('toast_profile_title'),
                 description: t('toast_error_unknown'),
@@ -113,7 +113,7 @@ export default function Page() {
     const passwordRecovery = async () => {
 
 
-        const res = await createRecoveryPassword(origin + "/update-password");
+        const res = await createUserRecoveryPassword(origin + "/update-password");
 
         // if(res) {
         toast({

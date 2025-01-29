@@ -25,15 +25,12 @@ export default async function Page() {
         };
     }));
 
-    const mySendedNotifications = 1;
-    const isLoading = false;
-    const notifications = [];
 
     return (
         <div className="w-full max-w-5xl pl-10 max-lg:pl-5 mx-auto h-full pb-10 max-sm:pl-0">
             <div className="relative overflow-hidden">
 
-                <h2 className="text-2xl font-semibold mb-10 max-md:text-xl max-md:mb-5">
+                <h2 className="font-semibold mb-10 text-xl max-md:mb-5">
                     {t("notifs")}
                 </h2>
 

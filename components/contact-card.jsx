@@ -11,6 +11,7 @@ import {
    AvatarFallback,
    AvatarImage
 } from "@/components/ui/avatar"
+
 import {
    DropdownMenu,
    DropdownMenuContent,
@@ -51,7 +52,7 @@ const ContactCard = ({ member, meets, currentUser }) => {
             }
          });
       } catch (error) {
-         console.error(error);
+         console.log(error);
       }
    }
    return (

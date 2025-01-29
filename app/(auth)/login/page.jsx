@@ -13,7 +13,7 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-import { redirect, useRouter } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -21,6 +21,9 @@ import { signInWithEmail } from "@/lib/appwrite/server/appwrite";
 
 export default function Page() {
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+  const ref = searchParams.get('ref');
 
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +58,7 @@ export default function Page() {
       <Card className="mx-auto w-full max-w-md shadow-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-semibold text-center">Kirjaudu sisään</CardTitle>
-          <CardDescription className="text-center">tai <Link href="/register" className="text-indigo-500 font-semibold">luo uusi tili</Link></CardDescription>
+          <CardDescription className="text-center">tai <Link href={"/register" + (ref ? `?ref=${ref}` : "")} className="text-indigo-500 font-semibold">luo uusi tili</Link></CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(handleLogin)} className="grid">
@@ -83,6 +86,7 @@ export default function Page() {
               />
               {errors.password && <p className="text-red-500 text-sm -mt-1">{errors.password.message}</p>}
             </div>
+            <Link href="/forgot-password" className="text-indigo-500 font-semibold mt-2 text-sm hover:text-indigo-700">Unohditko salasanasi?</Link>
             <Button
               type="submit"
               className="w-full mt-6"

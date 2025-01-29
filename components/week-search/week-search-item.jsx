@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { Textarea } from "../ui/textarea";
 import { storage } from "@/lib/appwrite/client/appwrite";
-import { createDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite";
+import { createDocument, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite";
 import { useLocale, useTranslations } from "next-intl";
 
 const WeekSearchItem = ({ weekSearch, router, mutate }) => {
@@ -24,7 +24,7 @@ const WeekSearchItem = ({ weekSearch, router, mutate }) => {
 
       setIsLoading(true);
 
-      const user = await getLoggedInUser();
+      const user = await getLoggedInUserProfile();
 
       try {
          const res = await createDocument("main_db", "week_search_comments", {
@@ -38,7 +38,7 @@ const WeekSearchItem = ({ weekSearch, router, mutate }) => {
          mutate();
          router.refresh();
       } catch (error) {
-         console.error(error);
+         console.log(error);
       } finally {
          setIsLoading(false);
          setCommentText("");

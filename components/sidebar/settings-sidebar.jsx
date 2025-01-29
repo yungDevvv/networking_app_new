@@ -83,7 +83,11 @@ export default function SettingsSidebar() {
         {
             title: t("mine_settings"),
             url: "/dashboard/account/settings"
-        }
+        },
+        {
+            title: "Kutsu käyttäjät",
+            url: "/dashboard/account/invite"
+        },
     ];
 
     return (
@@ -108,7 +112,7 @@ export default function SettingsSidebar() {
                     </div>
                 </div>
 
-                <div className="flex flex-col space-y-2 !mt-10 select-none max-sm:!mt-0">
+                <div className="flex flex-col space-y-2 !mt-10 select-none max-sm:!mt-0 min-w-[160px]">
                     {
                         items.map((item) => {
                             const isActive = pathname === item.url;

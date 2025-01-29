@@ -7,11 +7,12 @@ import { Textarea } from "@/components/ui/textarea"
 import UserDuplicateWeekSearch from "@/components/week-search/user-duplicate-week-search"
 import UserWeekSearchItem from "@/components/week-search/user-week-search-item"
 import { Loader2, Search, Send, Tag } from "lucide-react"
-import { createDocument, getLoggedInUser } from "@/lib/appwrite/server/appwrite"
+import { createDocument, getLoggedInUserProfile } from "@/lib/appwrite/server/appwrite"
 import { useDocuments } from "@/hooks/use-documents"
 import { businessCategories } from "@/types/business-categories"
 import { useTranslations } from "next-intl"
 import { cn } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
 
 export default function My() {
    const t = useTranslations();
@@ -25,12 +26,12 @@ export default function My() {
    const { documents: week_searches, isLoading: contentIsLoading, mutate } = useDocuments(
       "main_db",
       "week_searches",
-      useMemo(() => [], [])
+      [{ type: "limit", value: 10 }]
    );
 
    const handleDuplicateWeekSearch = async (text, prevWeekSearch) => {
       try {
-         const user = await getLoggedInUser();
+         const user = await getLoggedInUserProfile();
 
          await createDocument("main_db", "week_searches", {
             body: {
@@ -52,7 +53,7 @@ export default function My() {
       setIsLoading(true);
 
       try {
-         const user = await getLoggedInUser();
+         const user = await getLoggedInUserProfile();
          await createDocument("main_db", "week_searches", {
             body: {
                text,
@@ -80,14 +81,15 @@ export default function My() {
    }, []);
 
    return (
-      <div className="max-w-[660px] mx-auto pb-10">
+      // <div className="max-w-[660px] mx-auto pb-10">
+      <div className="max-w-3xl mx-auto pb-10">
          <div className="space-y-4">
             <div className="py-5">
-               <h1 className="text-xl font-semibold">{t("weekly_searches")}</h1>
+               <h1 className="text-xl font-semibold">{t("new_weekly_search")}</h1>
                <p className="text-sm text-gray-500 mt-1">
                   {t("asd101")}
                </p>
-
+               <Separator className="my-5" />
                <div className="mt-4 space-y-4">
                   <Textarea
                      onChange={(e) => setText(e.target.value)}

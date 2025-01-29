@@ -13,14 +13,17 @@ import {
    CardTitle,
    CardFooter
 } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
-import { createDocument, signInWithEmail, signUpWithEmail } from "@/lib/appwrite/server/appwrite";
+import { createDocument, listDocuments, signInWithEmail, signUpWithEmail, updateDocument } from "@/lib/appwrite/server/appwrite";
+import { mauticEmailService } from "@/lib/mautic/mautic";
 
 export default function Page() {
 
    const router = useRouter();
+   const searchParams = useSearchParams();
+   const ref = searchParams.get('ref');
 
    const [errorMessage, setErrorMessage] = useState("");
    const [isLoading, setIsLoading] = useState(false);
@@ -38,21 +41,35 @@ export default function Page() {
       setIsLoading(true);
 
       try {
-         const newUser = await signUpWithEmail(formData.email, formData.password, `${formData.first_name} ${formData.last_name}`);
-         console.log(newUser)
-         if (newUser) {
-            await signInWithEmail(formData.email, formData.password);
+         const newUserId = await signUpWithEmail(formData.email, formData.password, `${formData.first_name} ${formData.last_name}`);
 
-            await createDocument("main_db", "profiles", {
-               document_id: newUser.$id,
+         if (newUserId) {
+            await signInWithEmail(formData.email, formData.password);
+            const base64 = Buffer.from(formData.email).toString('base64');
+
+            const u = await createDocument("main_db", "profiles", {
+               document_id: newUserId,
                body: {
                   email: formData.email,
                   name: `${formData.first_name} ${formData.last_name}`,
+                  referal_code: base64.slice(0, 8)
                }
             });
-         }
 
-         router.push("/dashboard/account/profile");
+            await mauticEmailService.handleUserAuthentication(formData.email, { name: `${formData.first_name} ${formData.last_name}` });
+
+            if (ref) {
+               const inviteExists = await listDocuments("main_db", "invited_users", [{ type: "equal", name: "invited_email", value: formData.email }]);
+               console.log(inviteExists)
+               console.log(inviteExists.documents[0].$id)
+               if (inviteExists.total > 0) {
+                  await updateDocument("main_db", "invited_users", inviteExists.documents[0].$id, {
+                     status: "registered"
+                  });
+               }
+            }
+            router.push("/dashboard/account/profile");
+         }
       } catch (error) {
          setErrorMessage(error.message);
          console.log(error);
@@ -70,7 +87,7 @@ export default function Page() {
          <Card className="mx-auto w-full max-w-md shadow-xl">
             <CardHeader>
                <CardTitle className="text-2xl font-semibold text-center">Rekisteröidy</CardTitle>
-               <CardDescription className="text-center">tai <Link href="/login" className="text-indigo-500 font-semibold">kirjaudu sisään</Link></CardDescription>
+               <CardDescription className="text-center">tai <Link href={"/login" + (ref ? `?ref=${ref}` : "")} className="text-indigo-500 font-semibold">kirjaudu sisään</Link></CardDescription>
             </CardHeader>
             <CardContent>
 

@@ -1,4 +1,4 @@
-import { getLoggedInUser, getLoggedInUserProfile, listDocuments } from "@/lib/appwrite/server/appwrite";
+import { getLoggedInUserProfile, listDocuments } from "@/lib/appwrite/server/appwrite";
 import { getTranslations, getLocale } from "next-intl/server";
 import MeetingsList from "@/components/meetings/meetings-list";
 
